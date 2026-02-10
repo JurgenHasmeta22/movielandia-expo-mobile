@@ -70,28 +70,47 @@ export interface Serie {
 	reviews?: Review[];
 }
 
+export interface SeasonRatingInfo {
+	averageRating: number;
+	totalReviews: number;
+}
+
 export interface Season {
 	id: number;
+	title: string;
+	description: string;
+	photoSrc: string;
+	photoSrcProd: string;
+	trailerSrc: string;
+	ratingImdb: number;
+	dateAired?: string;
 	serieId: number;
-	seasonNumber: number;
-	name?: string;
-	overview?: string;
-	posterPath?: string;
-	airDate?: string;
-	episodeCount?: number;
+	ratings?: SeasonRatingInfo;
+	isBookmarked?: boolean;
+	isReviewed?: boolean;
+	reviews?: Review[];
+}
+
+export interface EpisodeRatingInfo {
+	averageRating: number;
+	totalReviews: number;
 }
 
 export interface Episode {
 	id: number;
+	title: string;
+	description: string;
+	photoSrc: string;
+	photoSrcProd: string;
+	trailerSrc: string;
+	duration: number;
+	ratingImdb: number;
+	dateAired?: string;
 	seasonId: number;
-	episodeNumber: number;
-	name?: string;
-	overview?: string;
-	stillPath?: string;
-	airDate?: string;
-	runtime?: number;
-	voteAverage?: number;
-	voteCount?: number;
+	ratings?: EpisodeRatingInfo;
+	isBookmarked?: boolean;
+	isReviewed?: boolean;
+	reviews?: Review[];
 }
 
 export interface ActorRatingInfo {

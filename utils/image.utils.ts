@@ -30,3 +30,5 @@ export const getProfileUrl = (
 	if (!path) return "";
 	return `${IMAGE_BASE_URL}/${size}${path}`;
 };
+
+export const getImageUrl = getPosterUrl;

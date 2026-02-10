@@ -30,6 +30,17 @@ export const ENDPOINTS = {
 		GET_RELATED: "/series/:id/related",
 		GET_SEASONS: "/series/:id/seasons",
 	},
+	SEASONS: {
+		GET_ALL: "/seasons",
+		GET_ONE: "/seasons/:id",
+		GET_BY_SERIE: "/seasons/serie/:serieId",
+		GET_EPISODES: "/seasons/:seasonId/episodes",
+	},
+	EPISODES: {
+		GET_ALL: "/episodes",
+		GET_ONE: "/episodes/:id",
+		GET_BY_SEASON: "/episodes/season/:seasonId",
+	},
 	ACTORS: {
 		GET_ALL: "/actors",
 		GET_ONE: "/actors/:id",
@@ -77,5 +88,11 @@ export const ENDPOINTS = {
 		ADD_REVIEW: "/users/reviews",
 		UPDATE_REVIEW: "/users/reviews/:itemId",
 		DELETE_REVIEW: "/users/reviews/:itemId",
+		ADD_SEASON_REVIEW: "/users/season-reviews",
+		UPDATE_SEASON_REVIEW: "/users/season-reviews/:seasonId",
+		DELETE_SEASON_REVIEW: "/users/season-reviews/:seasonId",
+		ADD_EPISODE_REVIEW: "/users/episode-reviews",
+		UPDATE_EPISODE_REVIEW: "/users/episode-reviews/:episodeId",
+		DELETE_EPISODE_REVIEW: "/users/episode-reviews/:episodeId",
 	},
 };

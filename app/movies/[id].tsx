@@ -71,16 +71,13 @@ export default function MovieDetailScreen() {
 				throw new Error("Please sign in to write a review");
 			}
 			if (editingReview) {
-				await userService.updateReview(Number(id), {
-					itemType: "movie",
+				await userService.updateReview(Number(id), "movie", {
 					content,
 					rating,
 				});
 				return "updated";
 			} else {
-				await userService.addReview({
-					itemId: Number(id),
-					itemType: "movie",
+				await userService.addReview(Number(id), "movie", {
 					content,
 					rating,
 				});
@@ -108,7 +105,7 @@ export default function MovieDetailScreen() {
 			if (!user) {
 				throw new Error("Please sign in");
 			}
-			await userService.removeReview(Number(id), "movie");
+			await userService.deleteReview(Number(id), "movie");
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["movie", id] });

@@ -1,7 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
-import { Alert, Image, ScrollView, StyleSheet, View } from "react-native";
+import {
+	Alert,
+	Image,
+	ScrollView,
+	StyleSheet,
+	TouchableOpacity,
+	View,
+} from "react-native";
 import { Card, Chip, Divider, IconButton, Snackbar } from "react-native-paper";
 
 import { ThemedText } from "@/components/themed-text";
@@ -10,10 +17,12 @@ import { Review } from "@/components/ui/review";
 import { ReviewDialog } from "@/components/ui/review-dialog";
 import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
+import { seasonService } from "@/lib/api/season.service";
 import { serieService } from "@/lib/api/serie.service";
 import { userService } from "@/lib/api/user.service";
 import { useAuthStore } from "@/store/auth.store";
 import { formatDate } from "@/utils/format.utils";
+import { getImageUrl } from "@/utils/image.utils";
 
 export default function SerieDetailScreen() {
 	const { id } = useLocalSearchParams<{ id: string }>();
@@ -29,6 +38,12 @@ export default function SerieDetailScreen() {
 	const { data: serie, isLoading } = useQuery({
 		queryKey: ["serie", id],
 		queryFn: () => serieService.getOne(Number(id)),
+		enabled: !!id,
+	});
+
+	const { data: seasonsData } = useQuery({
+		queryKey: ["seasons", "serie", id],
+		queryFn: () => seasonService.getBySerie(Number(id)),
 		enabled: !!id,
 	});
 
@@ -71,16 +86,13 @@ export default function SerieDetailScreen() {
 				throw new Error("Please sign in to write a review");
 			}
 			if (editingReview) {
-				await userService.updateReview(Number(id), {
-					itemType: "serie",
+				await userService.updateReview(Number(id), "serie", {
 					content,
 					rating,
 				});
 				return "updated";
 			} else {
-				await userService.addReview({
-					itemId: Number(id),
-					itemType: "serie",
+				await userService.addReview(Number(id), "serie", {
 					content,
 					rating,
 				});
@@ -107,7 +119,7 @@ export default function SerieDetailScreen() {
 			if (!user) {
 				throw new Error("Please sign in");
 			}
-			await userService.removeReview(Number(id), "serie");
+			await userService.deleteReview(Number(id), "serie");
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["serie", id] });
@@ -203,6 +215,8 @@ export default function SerieDetailScreen() {
 	const otherReviews = (serie as any).reviews?.filter(
 		(r: any) => r.user.id !== user?.id,
 	);
+
+	const seasons = seasonsData?.data || [];
 
 	return (
 		<ThemedView style={styles.container}>
@@ -333,6 +347,82 @@ export default function SerieDetailScreen() {
 							</ThemedText>
 						</Card.Content>
 					</Card>
+
+					{seasons.length > 0 && (
+						<>
+							<Card
+								style={[
+									styles.card,
+									{ backgroundColor: colors.card },
+								]}
+							>
+								<Card.Content>
+									<ThemedText style={styles.sectionTitle}>
+										Seasons ({seasons.length})
+									</ThemedText>
+								</Card.Content>
+							</Card>
+
+							{seasons.map((season) => (
+								<TouchableOpacity
+									key={season.id}
+									onPress={() => {
+										Alert.alert(
+											"Season Details",
+											`View details for ${season.title}`,
+										);
+									}}
+								>
+									<Card
+										style={[
+											styles.seasonCard,
+											{ backgroundColor: colors.card },
+										]}
+									>
+										<View style={styles.seasonContent}>
+											<Image
+												source={{
+													uri: getImageUrl(
+														season.photoSrc,
+													),
+												}}
+												style={styles.seasonPoster}
+												resizeMode="cover"
+											/>
+											<View style={styles.seasonInfo}>
+												<ThemedText type="defaultSemiBold">
+													{season.title}
+												</ThemedText>
+												<ThemedText
+													style={styles.seasonMeta}
+												>
+													⭐{" "}
+													{season.ratingImdb?.toFixed(
+														1,
+													) || "N/A"}
+												</ThemedText>
+												{season.dateAired && (
+													<ThemedText
+														style={
+															styles.seasonMeta
+														}
+													>
+														{formatDate(
+															season.dateAired,
+														)}
+													</ThemedText>
+												)}
+											</View>
+											<IconButton
+												icon="chevron-right"
+												size={24}
+											/>
+										</View>
+									</Card>
+								</TouchableOpacity>
+							))}
+						</>
+					)}
 
 					<Divider style={styles.divider} />
 					<View style={styles.reviewsHeaderContainer}>
@@ -558,5 +648,27 @@ const styles = StyleSheet.create({
 	noReviewsSubtext: {
 		fontSize: 14,
 		opacity: 0.7,
+	},
+	seasonCard: {
+		marginBottom: 12,
+	},
+	seasonContent: {
+		flexDirection: "row",
+		alignItems: "center",
+		padding: 12,
+	},
+	seasonPoster: {
+		width: 80,
+		height: 120,
+		borderRadius: 4,
+		marginRight: 12,
+	},
+	seasonInfo: {
+		flex: 1,
+	},
+	seasonMeta: {
+		fontSize: 12,
+		opacity: 0.7,
+		marginTop: 4,
 	},
 });
