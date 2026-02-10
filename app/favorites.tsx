@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { router } from "expo-router";
+import { router, Stack } from "expo-router";
 import { useState } from "react";
 import {
     ActivityIndicator,
@@ -144,6 +144,14 @@ export default function FavoritesScreen() {
 
 	return (
 		<ThemedView style={styles.container}>
+			<Stack.Screen
+				options={{
+					title: "My Favorites",
+					headerStyle: { backgroundColor: colors.background },
+					headerTintColor: colors.text,
+					headerBackTitle: "Back",
+				}}
+			/>
 			<View style={styles.tabsContainer}>
 				<FlatList
 					data={TABS}

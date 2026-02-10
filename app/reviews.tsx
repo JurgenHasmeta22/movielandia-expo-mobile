@@ -1,13 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
-import { router } from "expo-router";
+import { router, Stack } from "expo-router";
 import { useState } from "react";
 import {
-    ActivityIndicator,
-    FlatList,
-    Image,
-    Pressable,
-    StyleSheet,
-    View,
+	ActivityIndicator,
+	FlatList,
+	Image,
+	Pressable,
+	StyleSheet,
+	View,
 } from "react-native";
 import { Chip, Divider } from "react-native-paper";
 
@@ -67,6 +67,9 @@ const formatDate = (dateStr: string): string => {
 };
 
 const renderStars = (rating: number): string => {
+	if (!rating || isNaN(rating) || rating < 0 || rating > 5) {
+		return "☆☆☆☆☆";
+	}
 	const fullStars = Math.floor(rating);
 	const emptyStars = 5 - fullStars;
 	return "★".repeat(fullStars) + "☆".repeat(emptyStars);
@@ -183,6 +186,14 @@ export default function ReviewsScreen() {
 
 	return (
 		<ThemedView style={styles.container}>
+			<Stack.Screen
+				options={{
+					title: "My Reviews",
+					headerStyle: { backgroundColor: colors.background },
+					headerTintColor: colors.text,
+					headerBackTitle: "Back",
+				}}
+			/>
 			<View style={styles.tabsContainer}>
 				<FlatList
 					data={TABS}

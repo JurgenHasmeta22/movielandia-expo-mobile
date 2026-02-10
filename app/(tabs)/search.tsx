@@ -1,8 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { router } from "expo-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { FlatList, StyleSheet, TouchableOpacity, View } from "react-native";
-import { Card, Chip, Searchbar } from "react-native-paper";
+import { Card, Chip, IconButton, Searchbar } from "react-native-paper";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
@@ -22,6 +22,7 @@ export default function SearchScreen() {
 	const [searchQuery, setSearchQuery] = useState("");
 	const [debouncedQuery, setDebouncedQuery] = useState("");
 	const [searchType, setSearchType] = useState<SearchType>("all");
+	const flatListRef = useRef<FlatList>(null);
 
 	const { data: moviesData, isLoading: moviesLoading } = useQuery({
 		queryKey: ["movies-search", debouncedQuery],
@@ -70,52 +71,102 @@ export default function SearchScreen() {
 	const isLoading =
 		moviesLoading || seriesLoading || actorsLoading || crewLoading;
 
+	const totalResults =
+		(searchType === "all" || searchType === "movies"
+			? moviesData?.count || 0
+			: 0) +
+		(searchType === "all" || searchType === "series"
+			? seriesData?.count || 0
+			: 0) +
+		(searchType === "all" || searchType === "actors"
+			? actorsData?.count || 0
+			: 0) +
+		(searchType === "all" || searchType === "crew"
+			? crewData?.count || 0
+			: 0);
+
+	const scrollToTop = () => {
+		flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
+	};
+
 	const renderMovieItem = ({ item }: { item: any }) => (
-		<TouchableOpacity onPress={() => router.push(`/movies/${item.id}`)}>
+		<TouchableOpacity
+			onPress={() => router.push(`/movies/${item.id}`)}
+			style={styles.cardWrapper}
+		>
 			<Card style={[styles.card, { backgroundColor: colors.card }]}>
 				<Card.Cover
 					source={{
 						uri: getImageUrl(item.photoSrcProd || item.photoSrc),
 					}}
+					style={styles.cardImage}
 				/>
 				<Card.Content style={styles.cardContent}>
-					<ThemedText type="defaultSemiBold">{item.title}</ThemedText>
-					<ThemedText style={styles.rating}>
-						⭐ {item.ratingImdb?.toFixed(1) || "N/A"}
+					<ThemedText
+						type="defaultSemiBold"
+						numberOfLines={2}
+						style={styles.cardTitle}
+					>
+						{item.title}
 					</ThemedText>
+					{item.ratingImdb && (
+						<ThemedText style={styles.rating}>
+							⭐ {item.ratingImdb.toFixed(1)}
+						</ThemedText>
+					)}
 				</Card.Content>
 			</Card>
 		</TouchableOpacity>
 	);
 
 	const renderSerieItem = ({ item }: { item: any }) => (
-		<TouchableOpacity onPress={() => router.push(`/series/${item.id}`)}>
+		<TouchableOpacity
+			onPress={() => router.push(`/series/${item.id}`)}
+			style={styles.cardWrapper}
+		>
 			<Card style={[styles.card, { backgroundColor: colors.card }]}>
 				<Card.Cover
 					source={{
 						uri: getImageUrl(item.photoSrcProd || item.photoSrc),
 					}}
+					style={styles.cardImage}
 				/>
 				<Card.Content style={styles.cardContent}>
-					<ThemedText type="defaultSemiBold">{item.title}</ThemedText>
-					<ThemedText style={styles.rating}>
-						⭐ {item.ratingImdb?.toFixed(1) || "N/A"}
+					<ThemedText
+						type="defaultSemiBold"
+						numberOfLines={2}
+						style={styles.cardTitle}
+					>
+						{item.title}
 					</ThemedText>
+					{item.ratingImdb && (
+						<ThemedText style={styles.rating}>
+							⭐ {item.ratingImdb.toFixed(1)}
+						</ThemedText>
+					)}
 				</Card.Content>
 			</Card>
 		</TouchableOpacity>
 	);
 
 	const renderActorItem = ({ item }: { item: any }) => (
-		<TouchableOpacity onPress={() => router.push(`/actors/${item.id}`)}>
+		<TouchableOpacity
+			onPress={() => router.push(`/actors/${item.id}`)}
+			style={styles.cardWrapper}
+		>
 			<Card style={[styles.card, { backgroundColor: colors.card }]}>
 				<Card.Cover
 					source={{
 						uri: getImageUrl(item.photoSrcProd || item.photoSrc),
 					}}
+					style={styles.cardImage}
 				/>
 				<Card.Content style={styles.cardContent}>
-					<ThemedText type="defaultSemiBold">
+					<ThemedText
+						type="defaultSemiBold"
+						numberOfLines={2}
+						style={styles.cardTitle}
+					>
 						{item.fullname}
 					</ThemedText>
 				</Card.Content>
@@ -124,18 +175,30 @@ export default function SearchScreen() {
 	);
 
 	const renderCrewItem = ({ item }: { item: any }) => (
-		<TouchableOpacity onPress={() => router.push(`/crew/${item.id}`)}>
+		<TouchableOpacity
+			onPress={() => router.push(`/crew/${item.id}`)}
+			style={styles.cardWrapper}
+		>
 			<Card style={[styles.card, { backgroundColor: colors.card }]}>
 				<Card.Cover
 					source={{
 						uri: getImageUrl(item.photoSrcProd || item.photoSrc),
 					}}
+					style={styles.cardImage}
 				/>
 				<Card.Content style={styles.cardContent}>
-					<ThemedText type="defaultSemiBold">
+					<ThemedText
+						type="defaultSemiBold"
+						numberOfLines={2}
+						style={styles.cardTitle}
+					>
 						{item.fullname}
 					</ThemedText>
-					<ThemedText style={styles.role}>{item.role}</ThemedText>
+					{item.role && (
+						<ThemedText style={styles.role} numberOfLines={1}>
+							{item.role}
+						</ThemedText>
+					)}
 				</Card.Content>
 			</Card>
 		</TouchableOpacity>
@@ -190,7 +253,17 @@ export default function SearchScreen() {
 				</View>
 			</View>
 
+			{debouncedQuery.length > 2 && totalResults > 0 && (
+				<View style={styles.resultsHeader}>
+					<ThemedText style={styles.resultsCount}>
+						{totalResults} result{totalResults !== 1 ? "s" : ""}{" "}
+						found
+					</ThemedText>
+				</View>
+			)}
+
 			<FlatList
+				ref={flatListRef}
 				contentContainerStyle={styles.content}
 				ListEmptyComponent={
 					<View style={styles.emptyContainer}>
@@ -205,21 +278,21 @@ export default function SearchScreen() {
 				}
 				data={[
 					...(searchType === "all" || searchType === "movies"
-						? moviesData?.data || []
+						? moviesData?.movies || []
 						: []
-					).map((item) => ({ ...item, type: "movie" })),
+					).map((item: any) => ({ ...item, type: "movie" })),
 					...(searchType === "all" || searchType === "series"
-						? seriesData?.data || []
+						? seriesData?.series || []
 						: []
-					).map((item) => ({ ...item, type: "serie" })),
+					).map((item: any) => ({ ...item, type: "serie" })),
 					...(searchType === "all" || searchType === "actors"
-						? actorsData?.data || []
+						? actorsData?.actors || []
 						: []
-					).map((item) => ({ ...item, type: "actor" })),
+					).map((item: any) => ({ ...item, type: "actor" })),
 					...(searchType === "all" || searchType === "crew"
-						? crewData?.data || []
+						? crewData?.crew || []
 						: []
-					).map((item) => ({ ...item, type: "crew" })),
+					).map((item: any) => ({ ...item, type: "crew" })),
 				]}
 				renderItem={({ item }) => {
 					if (item.type === "movie") return renderMovieItem({ item });
@@ -232,6 +305,19 @@ export default function SearchScreen() {
 				numColumns={2}
 				columnWrapperStyle={styles.row}
 			/>
+
+			{debouncedQuery.length > 2 && totalResults > 10 && (
+				<IconButton
+					icon="arrow-up"
+					size={24}
+					iconColor="#fff"
+					onPress={scrollToTop}
+					style={[
+						styles.scrollTopButton,
+						{ backgroundColor: colors.primary },
+					]}
+				/>
+			)}
 		</ThemedView>
 	);
 }
@@ -242,6 +328,7 @@ const styles = StyleSheet.create({
 	},
 	searchContainer: {
 		padding: 16,
+		paddingBottom: 8,
 	},
 	searchBar: {
 		elevation: 2,
@@ -255,28 +342,54 @@ const styles = StyleSheet.create({
 	chip: {
 		marginBottom: 4,
 	},
+	resultsHeader: {
+		paddingHorizontal: 16,
+		paddingVertical: 8,
+		borderBottomWidth: 1,
+		borderBottomColor: "rgba(128, 128, 128, 0.2)",
+	},
+	resultsCount: {
+		fontSize: 14,
+		fontWeight: "600",
+		opacity: 0.7,
+	},
 	content: {
-		padding: 16,
-		paddingTop: 0,
+		padding: 8,
+		paddingTop: 12,
 	},
 	row: {
 		justifyContent: "space-between",
-		marginBottom: 16,
+		paddingHorizontal: 8,
+		marginBottom: 12,
+	},
+	cardWrapper: {
+		width: "47%",
 	},
 	card: {
-		width: "48%",
-		marginBottom: 8,
+		elevation: 2,
+		borderRadius: 6,
+		overflow: "hidden",
+	},
+	cardImage: {
+		height: 140,
 	},
 	cardContent: {
-		paddingTop: 12,
+		paddingVertical: 6,
+		paddingHorizontal: 6,
+		minHeight: 50,
+	},
+	cardTitle: {
+		fontSize: 12,
+		lineHeight: 15,
+		marginBottom: 2,
 	},
 	rating: {
-		fontSize: 12,
-		marginTop: 4,
+		fontSize: 10,
+		marginTop: 1,
 	},
 	role: {
-		fontSize: 12,
-		marginTop: 4,
+		fontSize: 10,
+		marginTop: 1,
 		opacity: 0.7,
 	},
 	emptyContainer: {
@@ -284,5 +397,15 @@ const styles = StyleSheet.create({
 		justifyContent: "center",
 		alignItems: "center",
 		paddingVertical: 48,
+	},
+	scrollTopButton: {
+		position: "absolute",
+		right: 16,
+		bottom: 16,
+		elevation: 4,
+		shadowColor: "#000",
+		shadowOffset: { width: 0, height: 2 },
+		shadowOpacity: 0.25,
+		shadowRadius: 3.84,
 	},
 });

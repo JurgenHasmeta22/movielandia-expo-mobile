@@ -30,6 +30,33 @@ export default function CrewDetailScreen() {
 		enabled: !!id,
 	});
 
+	const bookmarkMutation = useMutation({
+		mutationFn: async (isBookmarked: boolean) => {
+			if (!user) {
+				throw new Error("Please sign in to bookmark");
+			}
+			if (isBookmarked) {
+				await userService.removeFavorite(Number(id), "crew");
+				return "removed";
+			} else {
+				await userService.addFavorite(Number(id), "crew");
+				return "added";
+			}
+		},
+		onSuccess: (action) => {
+			queryClient.invalidateQueries({ queryKey: ["crew", id] });
+			const message =
+				action === "added"
+					? "Bookmark added successfully"
+					: "Bookmark removed successfully";
+			setSnackbarMessage(message);
+			setSnackbarVisible(true);
+		},
+		onError: (error: any) => {
+			Alert.alert("Error", error.message || "Failed to update bookmark");
+		},
+	});
+
 	const reviewMutation = useMutation({
 		mutationFn: async ({
 			content,
@@ -107,6 +134,17 @@ export default function CrewDetailScreen() {
 		);
 	}
 
+	const handleBookmark = () => {
+		if (!user) {
+			Alert.alert(
+				"Sign In Required",
+				"Please sign in to bookmark crew members",
+			);
+			return;
+		}
+		bookmarkMutation.mutate(!!crew.isBookmarked);
+	};
+
 	const handleWriteReview = () => {
 		if (!user) {
 			Alert.alert("Sign In Required", "Please sign in to write a review");
@@ -162,6 +200,23 @@ export default function CrewDetailScreen() {
 							{crew.ratings.totalReviews})
 						</Chip>
 					)}
+				</View>
+
+				<View style={styles.actions}>
+					<IconButton
+						icon={
+							crew.isBookmarked ? "bookmark" : "bookmark-outline"
+						}
+						size={28}
+						iconColor={
+							crew.isBookmarked ? colors.primary : colors.text
+						}
+						onPress={handleBookmark}
+						style={[
+							styles.actionButton,
+							{ backgroundColor: colors.card },
+						]}
+					/>
 				</View>
 
 				{crew.description && (
@@ -256,6 +311,15 @@ const styles = StyleSheet.create({
 		marginBottom: 16,
 	},
 	chip: {},
+	actions: {
+		flexDirection: "row",
+		justifyContent: "center",
+		gap: 12,
+		marginBottom: 16,
+	},
+	actionButton: {
+		borderRadius: 12,
+	},
 	description: {
 		lineHeight: 20,
 		marginBottom: 16,
