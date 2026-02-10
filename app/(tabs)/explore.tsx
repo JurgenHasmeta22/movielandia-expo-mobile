@@ -2,9 +2,9 @@ import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import {
-    ActivityIndicator,
-    Searchbar,
-    SegmentedButtons,
+	ActivityIndicator,
+	Searchbar,
+	SegmentedButtons,
 } from "react-native-paper";
 
 import { ThemedText } from "@/components/themed-text";
