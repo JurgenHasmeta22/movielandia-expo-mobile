@@ -1,6 +1,6 @@
 import { authService } from "@/lib/api/auth.service";
 import { AuthTokens, User } from "@/types";
-import * as SecureStore from "expo-secure-store";
+import { secureStorage } from "@/utils/storage.utils";
 import { create } from "zustand";
 
 interface AuthState {
@@ -8,7 +8,7 @@ interface AuthState {
 	tokens: AuthTokens | null;
 	isLoading: boolean;
 	isAuthenticated: boolean;
-	signIn: (email: string, password: string) => Promise<void>;
+	signIn: (emailOrUsername: string, password: string) => Promise<void>;
 	signUp: (
 		email: string,
 		password: string,
@@ -26,22 +26,30 @@ export const useAuthStore = create<AuthState>((set) => ({
 	isLoading: true,
 	isAuthenticated: false,
 
-	signIn: async (email: string, password: string) => {
+	signIn: async (emailOrUsername: string, password: string) => {
 		try {
-			const response = await authService.signIn({ email, password });
+			const response = await authService.signIn({
+				emailOrUsername,
+				password,
+			});
 
-			await SecureStore.setItemAsync("accessToken", response.accessToken);
+			await secureStorage.setItem("accessToken", response.accessToken);
 
+			const isEmail = emailOrUsername.includes("@");
 			const user: User = {
 				id: 0,
-				email: email,
-				username: email.split("@")[0],
+				email: isEmail
+					? emailOrUsername
+					: `${emailOrUsername}@email.com`,
+				username: isEmail
+					? emailOrUsername.split("@")[0]
+					: emailOrUsername,
 				isActive: true,
 				createdAt: new Date().toISOString(),
 				updatedAt: new Date().toISOString(),
 			};
 
-			await SecureStore.setItemAsync("user", JSON.stringify(user));
+			await secureStorage.setItem("user", JSON.stringify(user));
 
 			set({
 				user: user,
@@ -73,8 +81,8 @@ export const useAuthStore = create<AuthState>((set) => ({
 
 	signOut: async () => {
 		try {
-			await SecureStore.deleteItemAsync("accessToken");
-			await SecureStore.deleteItemAsync("user");
+			await secureStorage.deleteItem("accessToken");
+			await secureStorage.deleteItem("user");
 
 			set({
 				user: null,
@@ -90,8 +98,8 @@ export const useAuthStore = create<AuthState>((set) => ({
 		try {
 			set({ isLoading: true });
 
-			const token = await SecureStore.getItemAsync("accessToken");
-			const userStr = await SecureStore.getItemAsync("user");
+			const token = await secureStorage.getItem("accessToken");
+			const userStr = await secureStorage.getItem("user");
 
 			if (token && userStr) {
 				const user = JSON.parse(userStr);
@@ -116,6 +124,6 @@ export const useAuthStore = create<AuthState>((set) => ({
 
 	updateUser: (user: User) => {
 		set({ user });
-		SecureStore.setItemAsync("user", JSON.stringify(user));
+		secureStorage.setItem("user", JSON.stringify(user));
 	},
 }));

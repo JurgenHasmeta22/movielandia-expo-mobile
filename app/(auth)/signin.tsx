@@ -16,8 +16,8 @@ import { Button, HelperText, TextInput } from "react-native-paper";
 const { width } = Dimensions.get("window");
 
 export default function SignInScreen() {
-	const [email, setEmail] = useState("");
-	const [password, setPassword] = useState("");
+	const [emailOrUsername, setEmailOrUsername] = useState("test1@email.com");
+	const [password, setPassword] = useState("Test2222%");
 	const [error, setError] = useState("");
 	const [loading, setLoading] = useState(false);
 	const [showPassword, setShowPassword] = useState(false);
@@ -29,12 +29,12 @@ export default function SignInScreen() {
 			setError("");
 			setLoading(true);
 
-			if (!email || !password) {
+			if (!emailOrUsername || !password) {
 				setError("Please fill in all fields");
 				return;
 			}
 
-			await signIn(email, password);
+			await signIn(emailOrUsername, password);
 			router.replace("/(tabs)");
 		} catch (err: unknown) {
 			const errorMessage =
@@ -69,8 +69,8 @@ export default function SignInScreen() {
 						<View style={styles.form}>
 							<TextInput
 								label="Email or Username"
-								value={email}
-								onChangeText={setEmail}
+								value={emailOrUsername}
+								onChangeText={setEmailOrUsername}
 								keyboardType="email-address"
 								autoCapitalize="none"
 								mode="outlined"
@@ -78,6 +78,7 @@ export default function SignInScreen() {
 								error={!!error}
 								disabled={loading}
 								left={<TextInput.Icon icon="email" />}
+								placeholder="test1@email.com"
 								textColor="#000000"
 								theme={{
 									roundness: 8,
@@ -105,6 +106,7 @@ export default function SignInScreen() {
 										}
 									/>
 								}
+								placeholder="Test2222%"
 								textColor="#000000"
 								theme={{
 									roundness: 8,
@@ -123,10 +125,6 @@ export default function SignInScreen() {
 							<Button
 								mode="contained"
 								onPress={handleSignIn}
-								loading={loading}
-								disabled={loading}
-								style={styles.button}
-								contentStyle={styles.buttonContent}
 								icon="lock"
 							>
 								Sign In
