@@ -6,7 +6,7 @@ export interface MovieQuery {
 	page?: number;
 	perPage?: number;
 	sortBy?: string;
-	sortOrder?: "asc" | "desc";
+	ascOrDesc?: "asc" | "desc";
 	genreId?: number;
 	year?: number;
 	minRating?: number;

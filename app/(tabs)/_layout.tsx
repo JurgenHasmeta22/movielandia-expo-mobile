@@ -15,10 +15,16 @@ export default function TabLayout() {
 				tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
 				headerShown: true,
 				tabBarButton: HapticTab,
+				headerStyle: {
+					backgroundColor: Colors[colorScheme ?? "light"].background,
+				},
+				headerTintColor: Colors[colorScheme ?? "light"].text,
 				tabBarStyle: {
-					paddingBottom: 5,
-					paddingTop: 5,
-					height: 60,
+					paddingBottom: 3,
+					paddingTop: 3,
+					height: 55,
+					backgroundColor: Colors[colorScheme ?? "light"].background,
+					borderTopColor: Colors[colorScheme ?? "light"].border,
 				},
 			}}
 		>

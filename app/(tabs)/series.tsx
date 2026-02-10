@@ -12,11 +12,20 @@ import { ActivityIndicator, Chip } from "react-native-paper";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { MediaCard } from "@/components/ui/media-card";
+import { SortFilter, SortOption } from "@/components/ui/sort-filter";
 import { genreService } from "@/lib/api/genre.service";
 import { serieService } from "@/lib/api/serie.service";
 
+const sortOptions: SortOption[] = [
+	{ value: "title", label: "Title" },
+	{ value: "dateAired", label: "Air Date" },
+	{ value: "ratingImdb", label: "Rating" },
+];
+
 export default function SeriesScreen() {
 	const [selectedGenre, setSelectedGenre] = useState<number | undefined>();
+	const [sortBy, setSortBy] = useState("title");
+	const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 	const [refreshing, setRefreshing] = useState(false);
 
 	const {
@@ -28,12 +37,14 @@ export default function SeriesScreen() {
 		isFetchingNextPage,
 		refetch,
 	} = useInfiniteQuery({
-		queryKey: ["series", selectedGenre],
+		queryKey: ["series", selectedGenre, sortBy, sortOrder],
 		queryFn: ({ pageParam = 1 }) =>
 			serieService.getAll({
 				page: pageParam,
 				perPage: 20,
 				genreId: selectedGenre,
+				sortBy,
+				ascOrDesc: sortOrder,
 			}),
 		getNextPageParam: (lastPage, allPages) => {
 			const currentPage = allPages.length;
@@ -82,13 +93,6 @@ export default function SeriesScreen() {
 				style={styles.genresContainer}
 				contentContainerStyle={styles.genresContent}
 			>
-				<Chip
-					selected={!selectedGenre}
-					onPress={() => setSelectedGenre(undefined)}
-					style={styles.chip}
-				>
-					All
-				</Chip>
 				{genres &&
 					Array.isArray(genres) &&
 					genres.map((genre) => (
@@ -102,6 +106,16 @@ export default function SeriesScreen() {
 						</Chip>
 					))}
 			</ScrollView>
+
+			<SortFilter
+				sortOptions={sortOptions}
+				selectedSort={sortBy}
+				sortOrder={sortOrder}
+				onSortChange={setSortBy}
+				onOrderChange={() =>
+					setSortOrder(sortOrder === "asc" ? "desc" : "asc")
+				}
+			/>
 
 			{isLoading ? (
 				<View style={styles.loadingContainer}>

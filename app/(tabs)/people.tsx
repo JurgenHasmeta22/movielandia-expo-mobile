@@ -1,16 +1,29 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { router } from "expo-router";
+import { Href, router } from "expo-router";
 import { useState } from "react";
 import { FlatList, RefreshControl, StyleSheet, View } from "react-native";
 import { ActivityIndicator, Card, SegmentedButtons } from "react-native-paper";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
+import { SortFilter, SortOption } from "@/components/ui/sort-filter";
 import { actorService } from "@/lib/api/actor.service";
 import { crewService } from "@/lib/api/crew.service";
 
+const actorSortOptions: SortOption[] = [
+	{ value: "fullname", label: "Name" },
+	{ value: "debut", label: "Debut" },
+];
+
+const crewSortOptions: SortOption[] = [
+	{ value: "fullname", label: "Name" },
+	{ value: "role", label: "Role" },
+];
+
 export default function PeopleScreen() {
 	const [personType, setPersonType] = useState("actors");
+	const [sortBy, setSortBy] = useState("fullname");
+	const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 	const [refreshing, setRefreshing] = useState(false);
 
 	const {
@@ -22,9 +35,14 @@ export default function PeopleScreen() {
 		isFetchingNextPage: isFetchingNextActors,
 		refetch: refetchActors,
 	} = useInfiniteQuery({
-		queryKey: ["actors"],
+		queryKey: ["actors", sortBy, sortOrder],
 		queryFn: ({ pageParam = 1 }) =>
-			actorService.getAll({ page: pageParam, perPage: 20 }),
+			actorService.getAll({
+				page: pageParam,
+				perPage: 20,
+				sortBy,
+				ascOrDesc: sortOrder,
+			}),
 		getNextPageParam: (lastPage, allPages) => {
 			const currentPage = allPages.length;
 			const totalPages = Math.ceil((lastPage.count || 0) / 20);
@@ -43,9 +61,14 @@ export default function PeopleScreen() {
 		isFetchingNextPage: isFetchingNextCrew,
 		refetch: refetchCrew,
 	} = useInfiniteQuery({
-		queryKey: ["crew"],
+		queryKey: ["crew", sortBy, sortOrder],
 		queryFn: ({ pageParam = 1 }) =>
-			crewService.getAll({ page: pageParam, perPage: 20 }),
+			crewService.getAll({
+				page: pageParam,
+				perPage: 20,
+				sortBy,
+				ascOrDesc: sortOrder,
+			}),
 		getNextPageParam: (lastPage, allPages) => {
 			const currentPage = allPages.length;
 			const totalPages = Math.ceil((lastPage.count || 0) / 20);
@@ -102,7 +125,10 @@ export default function PeopleScreen() {
 			<View style={styles.header}>
 				<SegmentedButtons
 					value={personType}
-					onValueChange={setPersonType}
+					onValueChange={(value) => {
+						setPersonType(value);
+						setSortBy("fullname");
+					}}
 					buttons={[
 						{
 							value: "actors",
@@ -118,6 +144,18 @@ export default function PeopleScreen() {
 					style={styles.segmented}
 				/>
 			</View>
+
+			<SortFilter
+				sortOptions={
+					personType === "actors" ? actorSortOptions : crewSortOptions
+				}
+				selectedSort={sortBy}
+				sortOrder={sortOrder}
+				onSortChange={setSortBy}
+				onOrderChange={() =>
+					setSortOrder(sortOrder === "asc" ? "desc" : "asc")
+				}
+			/>
 
 			{isLoading ? (
 				<View style={styles.loadingContainer}>
@@ -153,7 +191,7 @@ export default function PeopleScreen() {
 									personType === "actors"
 										? `/actors/${item.id}`
 										: `/crew/${item.id}`;
-								router.push(route as any);
+								router.push(route as Href);
 							}}
 						>
 							<View style={styles.cardInner}>

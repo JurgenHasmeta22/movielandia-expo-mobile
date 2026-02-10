@@ -6,7 +6,7 @@ export interface CrewQuery {
 	page?: number;
 	perPage?: number;
 	sortBy?: string;
-	sortOrder?: "asc" | "desc";
+	ascOrDesc?: "asc" | "desc";
 }
 
 export const crewService = {

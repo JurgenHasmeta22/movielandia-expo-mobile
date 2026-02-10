@@ -77,4 +77,13 @@ export const userService = {
 			).replace(":itemId", itemId.toString()),
 		);
 	},
+
+	addReview: async (dto: {
+		itemId: number;
+		itemType: "movie" | "serie" | "actor" | "crew";
+		content: string;
+		rating: number;
+	}): Promise<any> => {
+		return apiClient.post(ENDPOINTS.USERS.ADD_REVIEW, dto);
+	},
 };

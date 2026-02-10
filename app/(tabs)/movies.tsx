@@ -12,11 +12,21 @@ import { ActivityIndicator, Chip } from "react-native-paper";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { MediaCard } from "@/components/ui/media-card";
+import { SortFilter, SortOption } from "@/components/ui/sort-filter";
 import { genreService } from "@/lib/api/genre.service";
 import { movieService } from "@/lib/api/movie.service";
 
+const sortOptions: SortOption[] = [
+	{ value: "title", label: "Title" },
+	{ value: "dateAired", label: "Release Date" },
+	{ value: "ratingImdb", label: "Rating" },
+	{ value: "duration", label: "Duration" },
+];
+
 export default function MoviesScreen() {
 	const [selectedGenre, setSelectedGenre] = useState<number | undefined>();
+	const [sortBy, setSortBy] = useState("title");
+	const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 	const [refreshing, setRefreshing] = useState(false);
 
 	const {
@@ -28,12 +38,14 @@ export default function MoviesScreen() {
 		isFetchingNextPage,
 		refetch,
 	} = useInfiniteQuery({
-		queryKey: ["movies", selectedGenre],
+		queryKey: ["movies", selectedGenre, sortBy, sortOrder],
 		queryFn: ({ pageParam = 1 }) =>
 			movieService.getAll({
 				page: pageParam,
 				perPage: 20,
 				genreId: selectedGenre,
+				sortBy,
+				ascOrDesc: sortOrder,
 			}),
 		getNextPageParam: (lastPage, allPages) => {
 			const currentPage = allPages.length;
@@ -82,13 +94,6 @@ export default function MoviesScreen() {
 				style={styles.genresContainer}
 				contentContainerStyle={styles.genresContent}
 			>
-				<Chip
-					selected={!selectedGenre}
-					onPress={() => setSelectedGenre(undefined)}
-					style={styles.chip}
-				>
-					All
-				</Chip>
 				{genres &&
 					Array.isArray(genres) &&
 					genres.map((genre) => (
@@ -102,6 +107,16 @@ export default function MoviesScreen() {
 						</Chip>
 					))}
 			</ScrollView>
+
+			<SortFilter
+				sortOptions={sortOptions}
+				selectedSort={sortBy}
+				sortOrder={sortOrder}
+				onSortChange={setSortBy}
+				onOrderChange={() =>
+					setSortOrder(sortOrder === "asc" ? "desc" : "asc")
+				}
+			/>
 
 			{isLoading ? (
 				<View style={styles.loadingContainer}>

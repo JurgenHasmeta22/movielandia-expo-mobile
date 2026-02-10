@@ -1,12 +1,12 @@
 import { MaterialIcons } from "@expo/vector-icons";
-import { RelativePathString, router } from "expo-router";
+import { Href, router } from "expo-router";
 import { useState } from "react";
 import {
-    Image,
-    Pressable,
-    StyleSheet,
-    View,
-    useColorScheme,
+	Image,
+	Pressable,
+	StyleSheet,
+	View,
+	useColorScheme,
 } from "react-native";
 import { Card, IconButton, Text } from "react-native-paper";
 
@@ -49,7 +49,7 @@ export function MediaCard({
 
 	const handlePress = () => {
 		const route = type === "movie" ? `/movies/${id}` : `/series/${id}`;
-		router.push(route as RelativePathString);
+		router.push(route as Href);
 	};
 
 	return (

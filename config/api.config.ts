@@ -73,9 +73,10 @@ export const ENDPOINTS = {
 		UPDATE_PROFILE: "/users/:id",
 		GET_FAVORITES: "/users/:id/favorites",
 		GET_WATCHLIST: "/users/:id/watchlist",
-		ADD_FAVORITE: "/users/:id/favorites",
-		REMOVE_FAVORITE: "/users/:id/favorites/:itemId",
+		ADD_FAVORITE: "/users/favorites",
+		REMOVE_FAVORITE: "/users/favorites",
 		ADD_TO_WATCHLIST: "/users/:id/watchlist",
 		REMOVE_FROM_WATCHLIST: "/users/:id/watchlist/:itemId",
+		ADD_REVIEW: "/users/reviews",
 	},
 };

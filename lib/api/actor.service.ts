@@ -2,11 +2,15 @@ import { ENDPOINTS } from "@/config/api.config";
 import { Actor, ActorListResponse, PaginatedResponse } from "@/types";
 import { apiClient } from "./client";
 
+export interface ActorQuery {
+	page?: number;
+	perPage?: number;
+	sortBy?: string;
+	ascOrDesc?: "asc" | "desc";
+}
+
 export const actorService = {
-	getAll: async (params?: {
-		page?: number;
-		perPage?: number;
-	}): Promise<ActorListResponse> => {
+	getAll: async (params?: ActorQuery): Promise<ActorListResponse> => {
 		return apiClient.get(ENDPOINTS.ACTORS.GET_ALL, { params });
 	},
 
