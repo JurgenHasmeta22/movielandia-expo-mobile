@@ -18,7 +18,7 @@ export interface AuthTokens {
 export interface SignUpData {
 	email: string;
 	password: string;
-	username: string;
+	userName: string;
 	name?: string;
 }
 

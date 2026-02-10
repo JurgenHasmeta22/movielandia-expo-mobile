@@ -1,21 +1,24 @@
 import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
 import { useAuthStore } from "@/store/auth.store";
 import { Link, router } from "expo-router";
 import { useState } from "react";
 import {
+	Dimensions,
+	Image,
+	ImageBackground,
 	KeyboardAvoidingView,
 	Platform,
 	ScrollView,
 	StyleSheet,
 	View,
 } from "react-native";
-import { Button, HelperText, TextInput, Title } from "react-native-paper";
+import { Button, HelperText, TextInput } from "react-native-paper";
+
+const { width } = Dimensions.get("window");
 
 export default function SignUpScreen() {
 	const [email, setEmail] = useState("");
 	const [username, setUsername] = useState("");
-	const [name, setName] = useState("");
 	const [password, setPassword] = useState("");
 	const [confirmPassword, setConfirmPassword] = useState("");
 	const [error, setError] = useState("");
@@ -40,12 +43,12 @@ export default function SignUpScreen() {
 				return;
 			}
 
-			if (password.length < 6) {
-				setError("Password must be at least 6 characters");
+			if (password.length < 8) {
+				setError("Password must be at least 8 characters");
 				return;
 			}
 
-			await signUp(email, password, username, name);
+			await signUp(email, password, username);
 			setSuccess(true);
 
 			setTimeout(() => {
@@ -62,181 +65,300 @@ export default function SignUpScreen() {
 
 	if (success) {
 		return (
-			<ThemedView style={styles.container}>
+			<ImageBackground
+				source={require("@/assets/images/background.png")}
+				style={styles.background}
+				resizeMode="cover"
+			>
+				<View style={styles.overlay} />
 				<View style={styles.successContainer}>
-					<Title style={styles.title}>Account Created!</Title>
-					<ThemedText style={styles.subtitle}>
-						Please check your email to verify your account.
-					</ThemedText>
-					<ThemedText style={styles.subtitle}>
-						Redirecting to sign in...
-					</ThemedText>
+					<View style={styles.successCard}>
+						<Image
+							source={require("@/assets/images/logo.png")}
+							style={styles.logoSmall}
+							resizeMode="contain"
+						/>
+						<ThemedText style={styles.successTitle}>
+							Account Created!
+						</ThemedText>
+						<ThemedText style={styles.successText}>
+							Please check your email to verify your account.
+						</ThemedText>
+						<ThemedText style={styles.successText}>
+							Redirecting to sign in...
+						</ThemedText>
+					</View>
 				</View>
-			</ThemedView>
+			</ImageBackground>
 		);
 	}
 
 	return (
-		<ThemedView style={styles.container}>
+		<ImageBackground
+			source={require("@/assets/images/background.png")}
+			style={styles.background}
+			resizeMode="cover"
+		>
+			<View style={styles.overlay} />
 			<KeyboardAvoidingView
 				behavior={Platform.OS === "ios" ? "padding" : "height"}
 				style={styles.keyboardView}
 			>
 				<ScrollView contentContainerStyle={styles.scrollContent}>
 					<View style={styles.content}>
-						<Title style={styles.title}>Create Account</Title>
-						<ThemedText style={styles.subtitle}>
-							Sign up to get started
-						</ThemedText>
-
-						<View style={styles.form}>
-							<TextInput
-								label="Email *"
-								value={email}
-								onChangeText={setEmail}
-								keyboardType="email-address"
-								autoCapitalize="none"
-								mode="outlined"
-								style={styles.input}
-								error={!!error}
-								disabled={loading}
+						<View style={styles.logoContainer}>
+							<Image
+								source={require("@/assets/images/logo.png")}
+								style={styles.logo}
+								resizeMode="contain"
 							/>
+						</View>
 
-							<TextInput
-								label="Username *"
-								value={username}
-								onChangeText={setUsername}
-								autoCapitalize="none"
-								mode="outlined"
-								style={styles.input}
-								error={!!error}
-								disabled={loading}
-							/>
+						<View style={styles.formContainer}>
+							<View style={styles.form}>
+								<TextInput
+									label="Username *"
+									value={username}
+									onChangeText={setUsername}
+									autoCapitalize="none"
+									mode="outlined"
+									style={styles.input}
+									error={!!error}
+									disabled={loading}
+									left={<TextInput.Icon icon="account" />}
+									textColor="#000000"
+									theme={{
+										roundness: 8,
+										colors: {
+											onSurfaceVariant: "#666666",
+										},
+									}}
+								/>
 
-							<TextInput
-								label="Name (Optional)"
-								value={name}
-								onChangeText={setName}
-								mode="outlined"
-								style={styles.input}
-								disabled={loading}
-							/>
+								<TextInput
+									label="Email *"
+									value={email}
+									onChangeText={setEmail}
+									keyboardType="email-address"
+									autoCapitalize="none"
+									mode="outlined"
+									style={styles.input}
+									error={!!error}
+									disabled={loading}
+									left={<TextInput.Icon icon="email" />}
+									textColor="#000000"
+									theme={{
+										roundness: 8,
+										colors: {
+											onSurfaceVariant: "#666666",
+										},
+									}}
+								/>
 
-							<TextInput
-								label="Password *"
-								value={password}
-								onChangeText={setPassword}
-								secureTextEntry={!showPassword}
-								mode="outlined"
-								style={styles.input}
-								error={!!error}
-								disabled={loading}
-								right={
-									<TextInput.Icon
-										icon={showPassword ? "eye-off" : "eye"}
-										onPress={() =>
-											setShowPassword(!showPassword)
-										}
-									/>
-								}
-							/>
+								<TextInput
+									label="Password *"
+									value={password}
+									onChangeText={setPassword}
+									secureTextEntry={!showPassword}
+									mode="outlined"
+									style={styles.input}
+									error={!!error}
+									disabled={loading}
+									left={<TextInput.Icon icon="lock" />}
+									right={
+										<TextInput.Icon
+											icon={
+												showPassword ? "eye-off" : "eye"
+											}
+											onPress={() =>
+												setShowPassword(!showPassword)
+											}
+										/>
+									}
+									textColor="#000000"
+									theme={{
+										roundness: 8,
+										colors: {
+											onSurfaceVariant: "#666666",
+										},
+									}}
+								/>
 
-							<TextInput
-								label="Confirm Password *"
-								value={confirmPassword}
-								onChangeText={setConfirmPassword}
-								secureTextEntry={!showPassword}
-								mode="outlined"
-								style={styles.input}
-								error={!!error}
-								disabled={loading}
-							/>
+								<TextInput
+									label="Confirm Password *"
+									value={confirmPassword}
+									onChangeText={setConfirmPassword}
+									secureTextEntry={!showPassword}
+									mode="outlined"
+									style={styles.input}
+									error={!!error}
+									disabled={loading}
+									left={<TextInput.Icon icon="lock-check" />}
+									textColor="#000000"
+									theme={{
+										roundness: 8,
+										colors: {
+											onSurfaceVariant: "#666666",
+										},
+									}}
+								/>
 
-							{error ? (
-								<HelperText type="error" visible={!!error}>
-									{error}
-								</HelperText>
-							) : null}
+								{error ? (
+									<HelperText type="error" visible={!!error}>
+										{error}
+									</HelperText>
+								) : null}
 
-							<Button
-								mode="contained"
-								onPress={handleSignUp}
-								loading={loading}
-								disabled={loading}
-								style={styles.button}
-							>
-								Sign Up
-							</Button>
+								<Button
+									mode="contained"
+									onPress={handleSignUp}
+									loading={loading}
+									disabled={loading}
+									style={styles.button}
+									contentStyle={styles.buttonContent}
+									icon="account-plus"
+								>
+									Sign Up
+								</Button>
 
-							<View style={styles.signinContainer}>
-								<ThemedText>
-									Already have an account?{" "}
-								</ThemedText>
-								<Link href="/signin" asChild>
-									<Button
-										mode="text"
-										disabled={loading}
-										compact
-									>
-										Sign In
-									</Button>
-								</Link>
+								<View style={styles.dividerContainer}>
+									<View style={styles.divider} />
+									<ThemedText style={styles.dividerText}>
+										OR
+									</ThemedText>
+									<View style={styles.divider} />
+								</View>
+
+								<View style={styles.signinContainer}>
+									<ThemedText style={styles.signinText}>
+										Already have an account?{" "}
+									</ThemedText>
+									<Link href="/signin" asChild>
+										<Button
+											mode="text"
+											disabled={loading}
+											compact
+											labelStyle={styles.signinLink}
+										>
+											Sign In
+										</Button>
+									</Link>
+								</View>
 							</View>
 						</View>
 					</View>
 				</ScrollView>
 			</KeyboardAvoidingView>
-		</ThemedView>
+		</ImageBackground>
 	);
 }
 
 const styles = StyleSheet.create({
-	container: {
+	background: {
 		flex: 1,
+		width: "100%",
+		height: "100%",
+	},
+	overlay: {
+		...StyleSheet.absoluteFillObject,
+		backgroundColor: "rgba(0, 0, 0, 0.7)",
 	},
 	keyboardView: {
 		flex: 1,
 	},
 	scrollContent: {
 		flexGrow: 1,
+		paddingVertical: 24,
 	},
 	content: {
 		flex: 1,
 		padding: 24,
 		justifyContent: "center",
 	},
-	title: {
-		fontSize: 32,
-		fontWeight: "bold",
-		marginBottom: 8,
-		textAlign: "center",
+	logoContainer: {
+		alignItems: "center",
+		marginBottom: 48,
+		marginTop: 24,
 	},
-	subtitle: {
-		fontSize: 16,
-		marginBottom: 32,
-		textAlign: "center",
-		opacity: 0.7,
+	logo: {
+		width: Math.min(width * 0.6, 240),
+		height: 75,
+	},
+	logoSmall: {
+		width: Math.min(width * 0.5, 200),
+		height: 60,
+		marginBottom: 24,
+	},
+	formContainer: {
+		maxWidth: 400,
+		width: "100%",
+		alignSelf: "center",
 	},
 	form: {
 		gap: 16,
 	},
 	input: {
-		marginBottom: 8,
+		backgroundColor: "rgba(255, 255, 255, 0.95)",
 	},
 	button: {
 		marginTop: 8,
-		paddingVertical: 6,
+	},
+	buttonContent: {
+		paddingVertical: 8,
+	},
+	dividerContainer: {
+		flexDirection: "row",
+		alignItems: "center",
+		marginVertical: 8,
+	},
+	divider: {
+		flex: 1,
+		height: 1,
+		backgroundColor: "rgba(255, 255, 255, 0.3)",
+	},
+	dividerText: {
+		marginHorizontal: 16,
+		fontSize: 14,
+		fontWeight: "600",
+		opacity: 0.7,
 	},
 	signinContainer: {
 		flexDirection: "row",
 		justifyContent: "center",
 		alignItems: "center",
-		marginTop: 16,
+		marginTop: 8,
+	},
+	signinText: {
+		fontSize: 14,
+	},
+	signinLink: {
+		fontWeight: "700",
 	},
 	successContainer: {
 		flex: 1,
 		justifyContent: "center",
 		alignItems: "center",
 		padding: 24,
+	},
+	successCard: {
+		backgroundColor: "rgba(255, 255, 255, 0.95)",
+		borderRadius: 16,
+		padding: 32,
+		alignItems: "center",
+		maxWidth: 400,
+		width: "100%",
+	},
+	successTitle: {
+		fontSize: 28,
+		fontWeight: "bold",
+		marginBottom: 16,
+		textAlign: "center",
+		color: "#1976d2",
+	},
+	successText: {
+		fontSize: 16,
+		marginBottom: 8,
+		textAlign: "center",
+		opacity: 0.8,
 	},
 });

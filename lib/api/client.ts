@@ -52,8 +52,18 @@ class ApiClient {
 		data?: unknown,
 		config?: AxiosRequestConfig,
 	): Promise<T> {
-		const response = await this.client.post<T>(url, data, config);
-		return response.data;
+		try {
+			const response = await this.client.post<T>(url, data, config);
+			return response.data;
+		} catch (error) {
+			if (error instanceof AxiosError) {
+				const message = error.response?.data?.message || error.message;
+				throw new Error(
+					Array.isArray(message) ? message.join(", ") : message,
+				);
+			}
+			throw error;
+		}
 	}
 
 	async put<T>(

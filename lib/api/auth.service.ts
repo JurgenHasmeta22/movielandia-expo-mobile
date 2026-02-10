@@ -1,11 +1,9 @@
 import { ENDPOINTS } from "@/config/api.config";
-import { AuthTokens, SignInData, SignUpData, User } from "@/types";
+import { SignInData, SignUpData } from "@/types";
 import { apiClient } from "./client";
 
 export const authService = {
-	signIn: async (
-		data: SignInData,
-	): Promise<{ user: User; tokens: AuthTokens }> => {
+	signIn: async (data: SignInData): Promise<{ accessToken: string }> => {
 		return apiClient.post(ENDPOINTS.AUTH.SIGN_IN, data);
 	},
 

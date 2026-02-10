@@ -1,10 +1,19 @@
 import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
 import { useAuthStore } from "@/store/auth.store";
 import { Link, router } from "expo-router";
 import { useState } from "react";
-import { KeyboardAvoidingView, Platform, StyleSheet, View } from "react-native";
-import { Button, HelperText, TextInput, Title } from "react-native-paper";
+import {
+	Dimensions,
+	Image,
+	ImageBackground,
+	KeyboardAvoidingView,
+	Platform,
+	StyleSheet,
+	View,
+} from "react-native";
+import { Button, HelperText, TextInput } from "react-native-paper";
+
+const { width } = Dimensions.get("window");
 
 export default function SignInScreen() {
 	const [email, setEmail] = useState("");
@@ -37,89 +46,142 @@ export default function SignInScreen() {
 	};
 
 	return (
-		<ThemedView style={styles.container}>
+		<ImageBackground
+			source={require("@/assets/images/background.png")}
+			style={styles.background}
+			resizeMode="cover"
+		>
+			<View style={styles.overlay} />
 			<KeyboardAvoidingView
 				behavior={Platform.OS === "ios" ? "padding" : "height"}
 				style={styles.keyboardView}
 			>
 				<View style={styles.content}>
-					<Title style={styles.title}>Welcome Back</Title>
-					<ThemedText style={styles.subtitle}>
-						Sign in to your account
-					</ThemedText>
-
-					<View style={styles.form}>
-						<TextInput
-							label="Email"
-							value={email}
-							onChangeText={setEmail}
-							keyboardType="email-address"
-							autoCapitalize="none"
-							mode="outlined"
-							style={styles.input}
-							error={!!error}
-							disabled={loading}
+					<View style={styles.logoContainer}>
+						<Image
+							source={require("@/assets/images/logo.png")}
+							style={styles.logo}
+							resizeMode="contain"
 						/>
+					</View>
 
-						<TextInput
-							label="Password"
-							value={password}
-							onChangeText={setPassword}
-							secureTextEntry={!showPassword}
-							mode="outlined"
-							style={styles.input}
-							error={!!error}
-							disabled={loading}
-							right={
-								<TextInput.Icon
-									icon={showPassword ? "eye-off" : "eye"}
-									onPress={() =>
-										setShowPassword(!showPassword)
-									}
-								/>
-							}
-						/>
+					<View style={styles.formContainer}>
+						<View style={styles.form}>
+							<TextInput
+								label="Email or Username"
+								value={email}
+								onChangeText={setEmail}
+								keyboardType="email-address"
+								autoCapitalize="none"
+								mode="outlined"
+								style={styles.input}
+								error={!!error}
+								disabled={loading}
+								left={<TextInput.Icon icon="email" />}
+								textColor="#000000"
+								theme={{
+									roundness: 8,
+									colors: {
+										onSurfaceVariant: "#666666",
+									},
+								}}
+							/>
 
-						{error ? (
-							<HelperText type="error" visible={!!error}>
-								{error}
-							</HelperText>
-						) : null}
+							<TextInput
+								label="Password"
+								value={password}
+								onChangeText={setPassword}
+								secureTextEntry={!showPassword}
+								mode="outlined"
+								style={styles.input}
+								error={!!error}
+								disabled={loading}
+								left={<TextInput.Icon icon="lock" />}
+								right={
+									<TextInput.Icon
+										icon={showPassword ? "eye-off" : "eye"}
+										onPress={() =>
+											setShowPassword(!showPassword)
+										}
+									/>
+								}
+								textColor="#000000"
+								theme={{
+									roundness: 8,
+									colors: {
+										onSurfaceVariant: "#666666",
+									},
+								}}
+							/>
 
-						<Button
-							mode="contained"
-							onPress={handleSignIn}
-							loading={loading}
-							disabled={loading}
-							style={styles.button}
-						>
-							Sign In
-						</Button>
+							{error ? (
+								<HelperText type="error" visible={!!error}>
+									{error}
+								</HelperText>
+							) : null}
 
-						<Link href="/forgot-password" asChild>
-							<Button mode="text" disabled={loading}>
-								Forgot Password?
+							<Button
+								mode="contained"
+								onPress={handleSignIn}
+								loading={loading}
+								disabled={loading}
+								style={styles.button}
+								contentStyle={styles.buttonContent}
+								icon="lock"
+							>
+								Sign In
 							</Button>
-						</Link>
 
-						<View style={styles.signupContainer}>
-							<ThemedText>{"Don't have an account? "}</ThemedText>
-							<Link href="/signup" asChild>
-								<Button mode="text" disabled={loading} compact>
-									Sign Up
+							<View style={styles.dividerContainer}>
+								<View style={styles.divider} />
+								<ThemedText style={styles.dividerText}>
+									OR
+								</ThemedText>
+								<View style={styles.divider} />
+							</View>
+
+							<Link href="/forgot-password" asChild>
+								<Button
+									mode="text"
+									disabled={loading}
+									style={styles.linkButton}
+								>
+									Forgot Password?
 								</Button>
 							</Link>
+
+							<View style={styles.signupContainer}>
+								<ThemedText style={styles.signupText}>
+									{"Don't have an account? "}
+								</ThemedText>
+								<Link href="/signup" asChild>
+									<Button
+										mode="text"
+										disabled={loading}
+										compact
+										labelStyle={styles.signupLink}
+									>
+										Sign Up
+									</Button>
+								</Link>
+							</View>
 						</View>
 					</View>
 				</View>
 			</KeyboardAvoidingView>
-		</ThemedView>
+		</ImageBackground>
 	);
 }
 
 const styles = StyleSheet.create({
-	container: {
+	background: {
 		flex: 1,
+		width: "100%",
+		height: "100%",
+	},
+	overlay: {
+		...StyleSheet.absoluteFillObject,
+		backgroundColor: "rgba(0, 0, 0, 0.7)",
 	},
 	keyboardView: {
 		flex: 1,
@@ -129,32 +191,60 @@ const styles = StyleSheet.create({
 		padding: 24,
 		justifyContent: "center",
 	},
-	title: {
-		fontSize: 32,
-		fontWeight: "bold",
-		marginBottom: 8,
-		textAlign: "center",
+	logoContainer: {
+		alignItems: "center",
+		marginBottom: 48,
 	},
-	subtitle: {
-		fontSize: 16,
-		marginBottom: 32,
-		textAlign: "center",
-		opacity: 0.7,
+	logo: {
+		width: Math.min(width * 0.6, 240),
+		height: 75,
+	},
+	formContainer: {
+		maxWidth: 400,
+		width: "100%",
+		alignSelf: "center",
 	},
 	form: {
 		gap: 16,
 	},
 	input: {
-		marginBottom: 8,
+		backgroundColor: "rgba(255, 255, 255, 0.95)",
 	},
 	button: {
 		marginTop: 8,
-		paddingVertical: 6,
+	},
+	buttonContent: {
+		paddingVertical: 8,
+	},
+	dividerContainer: {
+		flexDirection: "row",
+		alignItems: "center",
+		marginVertical: 8,
+	},
+	divider: {
+		flex: 1,
+		height: 1,
+		backgroundColor: "rgba(255, 255, 255, 0.3)",
+	},
+	dividerText: {
+		marginHorizontal: 16,
+		fontSize: 14,
+		fontWeight: "600",
+		opacity: 0.7,
+	},
+	linkButton: {
+		marginTop: -8,
 	},
 	signupContainer: {
 		flexDirection: "row",
 		justifyContent: "center",
 		alignItems: "center",
-		marginTop: 16,
+		marginTop: 8,
+	},
+	signupText: {
+		fontSize: 14,
+	},
+	signupLink: {
+		fontWeight: "700",
 	},
 });

@@ -30,18 +30,22 @@ export const useAuthStore = create<AuthState>((set) => ({
 		try {
 			const response = await authService.signIn({ email, password });
 
-			await SecureStore.setItemAsync(
-				"accessToken",
-				response.tokens.accessToken,
-			);
-			await SecureStore.setItemAsync(
-				"user",
-				JSON.stringify(response.user),
-			);
+			await SecureStore.setItemAsync("accessToken", response.accessToken);
+
+			const user: User = {
+				id: 0,
+				email: email,
+				username: email.split("@")[0],
+				isActive: true,
+				createdAt: new Date().toISOString(),
+				updatedAt: new Date().toISOString(),
+			};
+
+			await SecureStore.setItemAsync("user", JSON.stringify(user));
 
 			set({
-				user: response.user,
-				tokens: response.tokens,
+				user: user,
+				tokens: { accessToken: response.accessToken },
 				isAuthenticated: true,
 			});
 		} catch (error) {
@@ -56,7 +60,12 @@ export const useAuthStore = create<AuthState>((set) => ({
 		name?: string,
 	) => {
 		try {
-			await authService.signUp({ email, password, username, name });
+			await authService.signUp({
+				email,
+				password,
+				userName: username,
+				name,
+			});
 		} catch (error) {
 			throw error;
 		}
