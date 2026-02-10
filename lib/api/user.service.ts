@@ -42,6 +42,15 @@ export const userService = {
 		});
 	},
 
+	getAllFavorites: async (
+		page = 1,
+		search = "",
+	): Promise<FavoritesListResponse> => {
+		return apiClient.get(ENDPOINTS.USERS.GET_FAVORITES, {
+			params: { page, search },
+		});
+	},
+
 	addFavorite: async (itemId: number, type: FavoriteType): Promise<void> => {
 		return apiClient.post(ENDPOINTS.USERS.ADD_FAVORITE, { itemId, type });
 	},

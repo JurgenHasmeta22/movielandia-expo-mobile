@@ -123,6 +123,8 @@ export default function SerieDetailScreen() {
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["serie", id] });
+			setSnackbarMessage("Review deleted");
+			setSnackbarVisible(true);
 		},
 		onError: (error: any) => {
 			Alert.alert("Error", error.message || "Failed to delete review");
@@ -207,6 +209,7 @@ export default function SerieDetailScreen() {
 
 	const handleSubmitReview = async (content: string, rating: number) => {
 		await reviewMutation.mutateAsync({ content, rating });
+		setShowReviewDialog(false);
 	};
 
 	const seasons: any[] = (seasonsData as any)?.seasons || [];
@@ -367,9 +370,9 @@ export default function SerieDetailScreen() {
 						<ThemedText style={styles.reviewsHeader}>
 							Reviews
 						</ThemedText>
-						{user && (
+						{user && !serie.isReviewed && (
 							<IconButton
-								icon={serie.isReviewed ? "pencil" : "plus"}
+								icon="plus"
 								size={20}
 								iconColor={colors.primary}
 								onPress={handleWriteReview}
@@ -415,8 +418,8 @@ export default function SerieDetailScreen() {
 					setEditingReview(null);
 				}}
 				onSubmit={handleSubmitReview}
-				initialContent={editingReview?.content || ""}
-				initialRating={editingReview?.rating || 5}
+				initialContent={editingReview?.content}
+				initialRating={editingReview?.rating}
 				isEdit={!!editingReview}
 			/>
 			<Snackbar

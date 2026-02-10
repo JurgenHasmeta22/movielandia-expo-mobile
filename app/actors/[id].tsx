@@ -267,9 +267,9 @@ export default function ActorDetailScreen() {
 					<ThemedText style={styles.reviewsHeader}>
 						Reviews
 					</ThemedText>
-					{user && (
+					{user && !actor.isReviewed && (
 						<IconButton
-							icon={actor.isReviewed ? "pencil" : "plus"}
+							icon="plus"
 							size={20}
 							iconColor={colors.primary}
 							onPress={handleWriteReview}

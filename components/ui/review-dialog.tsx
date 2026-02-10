@@ -2,14 +2,14 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
-	KeyboardAvoidingView,
-	Modal,
-	Platform,
-	ScrollView,
-	StyleSheet,
-	View,
+    KeyboardAvoidingView,
+    Modal,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    View,
 } from "react-native";
 import { Button, Portal, TextInput } from "react-native-paper";
 
@@ -35,6 +35,13 @@ export function ReviewDialog({
 	const [content, setContent] = useState(initialContent);
 	const [rating, setRating] = useState(initialRating);
 	const [isSubmitting, setIsSubmitting] = useState(false);
+
+	useEffect(() => {
+		if (visible) {
+			setContent(initialContent);
+			setRating(initialRating);
+		}
+	}, [visible, initialContent, initialRating]);
 
 	const handleSubmit = async () => {
 		if (!content.trim() || rating < 1 || rating > 10) return;

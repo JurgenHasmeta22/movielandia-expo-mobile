@@ -267,9 +267,9 @@ export default function CrewDetailScreen() {
 					<ThemedText style={styles.reviewsHeader}>
 						Reviews
 					</ThemedText>
-					{user && (
+					{user && !crew.isReviewed && (
 						<IconButton
-							icon={crew.isReviewed ? "pencil" : "plus"}
+							icon="plus"
 							size={20}
 							iconColor={colors.primary}
 							onPress={handleWriteReview}

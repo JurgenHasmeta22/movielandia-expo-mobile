@@ -290,9 +290,9 @@ export default function MovieDetailScreen() {
 						<ThemedText style={styles.reviewsHeader}>
 							Reviews
 						</ThemedText>
-						{user && (
+						{user && !movie.isReviewed && (
 							<IconButton
-								icon={movie.isReviewed ? "pencil" : "plus"}
+								icon="plus"
 								size={20}
 								iconColor={colors.primary}
 								onPress={handleWriteReview}
@@ -338,8 +338,8 @@ export default function MovieDetailScreen() {
 					setEditingReview(null);
 				}}
 				onSubmit={handleSubmitReview}
-				initialContent={editingReview?.content || ""}
-				initialRating={editingReview?.rating || 5}
+				initialContent={editingReview?.content}
+				initialRating={editingReview?.rating}
 				isEdit={!!editingReview}
 			/>
 			<Snackbar

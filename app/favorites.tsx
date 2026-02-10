@@ -18,7 +18,8 @@ import { useColorScheme } from "@/hooks/use-color-scheme";
 import { userService } from "@/lib/api/user.service";
 import { FavoriteItem, FavoriteType } from "@/types";
 
-const TABS: { label: string; value: FavoriteType }[] = [
+const TABS: { label: string; value: FavoriteType | "all" }[] = [
+	{ label: "All", value: "all" },
 	{ label: "Movies", value: "movies" },
 	{ label: "Series", value: "series" },
 	{ label: "Actors", value: "actors" },
@@ -72,15 +73,20 @@ const getItemDetails = (item: FavoriteItem, type: FavoriteType) => {
 export default function FavoritesScreen() {
 	const colorScheme = useColorScheme();
 	const colors = Colors[colorScheme ?? "light"];
-	const [activeTab, setActiveTab] = useState<FavoriteType>("movies");
+	const [activeTab, setActiveTab] = useState<FavoriteType | "all">("all");
 	const [page, setPage] = useState(1);
 
 	const { data, isLoading } = useQuery({
 		queryKey: ["favorites", activeTab, page],
-		queryFn: () => userService.getFavorites(activeTab, page),
+		queryFn: () => {
+			if (activeTab === "all") {
+				return userService.getAllFavorites(page);
+			}
+			return userService.getFavorites(activeTab, page);
+		},
 	});
 
-	const handleTabChange = (tab: FavoriteType) => {
+	const handleTabChange = (tab: FavoriteType | "all") => {
 		setActiveTab(tab);
 		setPage(1);
 	};
@@ -92,7 +98,18 @@ export default function FavoritesScreen() {
 	};
 
 	const renderItem = ({ item }: { item: FavoriteItem }) => {
-		const details = getItemDetails(item, activeTab);
+		const itemType: FavoriteType = item.movie
+			? "movies"
+			: item.serie
+				? "series"
+				: item.actor
+					? "actors"
+					: item.crew
+						? "crew"
+						: item.season
+							? "seasons"
+							: "episodes";
+		const details = getItemDetails(item, itemType);
 
 		return (
 			<Pressable onPress={details.onPress} style={styles.itemCard}>
@@ -133,8 +150,8 @@ export default function FavoritesScreen() {
 								{ color: colors.secondary },
 							]}
 						>
-							{activeTab.charAt(0).toUpperCase() +
-								activeTab.slice(1)}
+							{itemType.charAt(0).toUpperCase() +
+								itemType.slice(1)}
 						</ThemedText>
 					</View>
 				</View>

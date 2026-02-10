@@ -104,6 +104,7 @@ export default function SeasonDetailScreen() {
 			}
 			queryClient.invalidateQueries({ queryKey: ["season", id] });
 			setShowReviewDialog(false);
+			setEditingReview(null);
 			setSnackbarMessage(
 				editingReview ? "Review updated" : "Review added",
 			);
@@ -287,9 +288,9 @@ export default function SeasonDetailScreen() {
 
 						<View style={styles.sectionHeader}>
 							<ThemedText type="subtitle">Reviews</ThemedText>
-							{user && (
+							{user && !season.isReviewed && (
 								<IconButton
-									icon={season.isReviewed ? "pencil" : "plus"}
+									icon="plus"
 									size={20}
 									onPress={handleAddReview}
 								/>
@@ -302,12 +303,12 @@ export default function SeasonDetailScreen() {
 									key={review.id}
 									review={review}
 									onEdit={
-										user?.id === review.userId
+										user?.id === review.user.id
 											? () => handleEditReview(review)
 											: undefined
 									}
 									onDelete={
-										user?.id === review.userId
+										user?.id === review.user.id
 											? () =>
 													handleDeleteReview(
 														review.id,
