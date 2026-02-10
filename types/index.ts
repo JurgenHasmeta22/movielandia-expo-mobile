@@ -288,3 +288,56 @@ export interface ApiError {
 	statusCode: number;
 	errors?: Record<string, string[]>;
 }
+
+export type FavoriteType =
+	| "movies"
+	| "series"
+	| "actors"
+	| "crew"
+	| "seasons"
+	| "episodes";
+
+export type ReviewItemType =
+	| "movie"
+	| "serie"
+	| "season"
+	| "episode"
+	| "actor"
+	| "crew";
+
+export interface FavoriteItem {
+	id: number;
+	userId: number;
+	movie?: Movie;
+	serie?: Serie;
+	actor?: Actor;
+	crew?: Crew;
+	season?: Season;
+	episode?: Episode;
+}
+
+export interface FavoritesListResponse {
+	items: FavoriteItem[];
+	total: number;
+	page: number;
+	perPage: number;
+}
+
+export interface UserReviewItem {
+	id: number;
+	rating: number;
+	content: string;
+	createdAt: string;
+	updatedAt: string;
+	itemType: ReviewItemType;
+	itemTitle: string;
+	itemImage: string;
+	itemId: number;
+}
+
+export interface UserReviewsResponse {
+	items: UserReviewItem[];
+	total: number;
+	page: number;
+	perPage: number;
+}

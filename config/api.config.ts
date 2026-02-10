@@ -87,6 +87,7 @@ export const ENDPOINTS = {
 		GET_FAVORITES: "/users/favorites/list",
 		ADD_FAVORITE: "/users/favorites",
 		REMOVE_FAVORITE: "/users/favorites",
+		GET_REVIEWS: "/users/reviews/list",
 		ADD_REVIEW: "/users/reviews",
 		UPDATE_REVIEW: "/users/reviews/:itemId",
 		DELETE_REVIEW: "/users/reviews/:itemId",

@@ -62,6 +62,20 @@ export default function RootLayout() {
 								title: "Episode Details",
 							}}
 						/>
+						<Stack.Screen
+							name="favorites"
+							options={{
+								headerShown: true,
+								title: "My Favorites",
+							}}
+						/>
+						<Stack.Screen
+							name="reviews"
+							options={{
+								headerShown: true,
+								title: "My Reviews",
+							}}
+						/>
 					</Stack>
 					<StatusBar style="auto" />
 				</AuthProvider>

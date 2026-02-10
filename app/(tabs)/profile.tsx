@@ -1,14 +1,18 @@
 import { router } from "expo-router";
 import { ScrollView, StyleSheet, View } from "react-native";
-import { Button } from "react-native-paper";
+import { Button, Divider } from "react-native-paper";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
+import { Colors } from "@/constants/theme";
+import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useAuthStore } from "@/store/auth.store";
 
 export default function ProfileScreen() {
 	const user = useAuthStore((state) => state.user);
 	const signOut = useAuthStore((state) => state.signOut);
+	const colorScheme = useColorScheme();
+	const colors = Colors[colorScheme ?? "light"];
 
 	const handleSignOut = async () => {
 		await signOut();
@@ -54,18 +58,26 @@ export default function ProfileScreen() {
 					</View>
 				)}
 
+				<Divider style={styles.divider} />
+
 				<View style={styles.actions}>
-					<Button mode="outlined" onPress={() => router.push("/")}>
-						My Lists
+					<Button
+						mode="outlined"
+						icon="heart"
+						onPress={() => router.push("/favorites")}
+						style={styles.actionButton}
+						textColor={colors.primary}
+					>
+						My Favorites
 					</Button>
-					<Button mode="outlined" onPress={() => router.push("/")}>
+					<Button
+						mode="outlined"
+						icon="star"
+						onPress={() => router.push("/reviews")}
+						style={styles.actionButton}
+						textColor={colors.primary}
+					>
 						My Reviews
-					</Button>
-					<Button mode="outlined" onPress={() => router.push("/")}>
-						Favorites
-					</Button>
-					<Button mode="outlined" onPress={() => router.push("/")}>
-						Watchlist
 					</Button>
 				</View>
 
@@ -93,7 +105,7 @@ const styles = StyleSheet.create({
 		marginBottom: 24,
 	},
 	section: {
-		marginBottom: 32,
+		marginBottom: 24,
 	},
 	label: {
 		marginTop: 16,
@@ -104,9 +116,15 @@ const styles = StyleSheet.create({
 	value: {
 		fontSize: 16,
 	},
+	divider: {
+		marginBottom: 24,
+	},
 	actions: {
 		gap: 12,
 		marginBottom: 32,
+	},
+	actionButton: {
+		borderRadius: 8,
 	},
 	signOutButton: {
 		marginTop: 16,
