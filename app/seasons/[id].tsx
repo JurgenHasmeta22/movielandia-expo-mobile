@@ -53,10 +53,10 @@ export default function SeasonDetailScreen() {
 				throw new Error("Please sign in to bookmark");
 			}
 			if (isBookmarked) {
-				await userService.removeFavorite(Number(id), "season");
+				await userService.removeFavorite(Number(id), "seasons");
 				return "removed";
 			} else {
-				await userService.addFavorite(Number(id), "season");
+				await userService.addFavorite(Number(id), "seasons");
 				return "added";
 			}
 		},

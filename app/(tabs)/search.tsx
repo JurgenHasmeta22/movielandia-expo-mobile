@@ -220,35 +220,35 @@ export default function SearchScreen() {
 						onPress={() => setSearchType("all")}
 						style={styles.chip}
 					>
-						All
+						All ({totalResults})
 					</Chip>
 					<Chip
 						selected={searchType === "movies"}
 						onPress={() => setSearchType("movies")}
 						style={styles.chip}
 					>
-						Movies
+						Movies ({moviesData?.count || 0})
 					</Chip>
 					<Chip
 						selected={searchType === "series"}
 						onPress={() => setSearchType("series")}
 						style={styles.chip}
 					>
-						Series
+						Series ({seriesData?.count || 0})
 					</Chip>
 					<Chip
 						selected={searchType === "actors"}
 						onPress={() => setSearchType("actors")}
 						style={styles.chip}
 					>
-						Actors
+						Actors ({actorsData?.count || 0})
 					</Chip>
 					<Chip
 						selected={searchType === "crew"}
 						onPress={() => setSearchType("crew")}
 						style={styles.chip}
 					>
-						Crew
+						Crew ({crewData?.count || 0})
 					</Chip>
 				</View>
 			</View>
@@ -371,24 +371,24 @@ const styles = StyleSheet.create({
 		overflow: "hidden",
 	},
 	cardImage: {
-		height: 140,
+		height: 100,
 	},
 	cardContent: {
-		paddingVertical: 6,
-		paddingHorizontal: 6,
-		minHeight: 50,
+		paddingVertical: 4,
+		paddingHorizontal: 4,
+		minHeight: 40,
 	},
 	cardTitle: {
-		fontSize: 12,
-		lineHeight: 15,
-		marginBottom: 2,
+		fontSize: 11,
+		lineHeight: 13,
+		marginBottom: 1,
 	},
 	rating: {
-		fontSize: 10,
+		fontSize: 9,
 		marginTop: 1,
 	},
 	role: {
-		fontSize: 10,
+		fontSize: 9,
 		marginTop: 1,
 		opacity: 0.7,
 	},

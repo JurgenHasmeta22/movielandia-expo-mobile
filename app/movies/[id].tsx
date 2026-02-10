@@ -6,6 +6,7 @@ import { Chip, Divider, IconButton, Snackbar } from "react-native-paper";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
+import { Review } from "@/components/ui/review";
 import { ReviewDialog } from "@/components/ui/review-dialog";
 import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
@@ -155,8 +156,43 @@ export default function MovieDetailScreen() {
 		setShowReviewDialog(true);
 	};
 
+	const handleEditReview = (review: any) => {
+		setEditingReview(review);
+		setShowReviewDialog(true);
+	};
+
+	const handleDeleteReview = () => {
+		Alert.alert(
+			"Delete Review",
+			"Are you sure you want to delete this review?",
+			[
+				{ text: "Cancel", style: "cancel" },
+				{
+					text: "Delete",
+					style: "destructive",
+					onPress: async () => {
+						try {
+							await userService.deleteReview(Number(id), "movie");
+							queryClient.invalidateQueries({
+								queryKey: ["movie", id],
+							});
+							setSnackbarMessage("Review deleted");
+							setSnackbarVisible(true);
+						} catch (error: any) {
+							Alert.alert(
+								"Error",
+								error.message || "Failed to delete review",
+							);
+						}
+					},
+				},
+			],
+		);
+	};
+
 	const handleSubmitReview = async (content: string, rating: number) => {
 		await reviewMutation.mutateAsync({ content, rating });
+		setShowReviewDialog(false);
 	};
 
 	return (
@@ -254,10 +290,10 @@ export default function MovieDetailScreen() {
 						<ThemedText style={styles.reviewsHeader}>
 							Reviews
 						</ThemedText>
-						{!movie.isReviewed && user && (
+						{user && (
 							<IconButton
-								icon="plus"
-								size={24}
+								icon={movie.isReviewed ? "pencil" : "plus"}
+								size={20}
 								iconColor={colors.primary}
 								onPress={handleWriteReview}
 								style={styles.addReviewButton}
@@ -265,11 +301,23 @@ export default function MovieDetailScreen() {
 						)}
 					</View>
 
-					{movie.ratings && movie.ratings.totalReviews > 0 ? (
-						<ThemedText style={styles.noReviewsSubtext}>
-							{movie.ratings.totalReviews} review(s) • Average:{" "}
-							{movie.ratings.averageRating.toFixed(1)}/5
-						</ThemedText>
+					{movie.reviews && movie.reviews.length > 0 ? (
+						movie.reviews.map((review) => (
+							<Review
+								key={review.id}
+								review={review}
+								onEdit={
+									user?.id === review.user.id
+										? () => handleEditReview(review)
+										: undefined
+								}
+								onDelete={
+									user?.id === review.user.id
+										? handleDeleteReview
+										: undefined
+								}
+							/>
+						))
 					) : (
 						<View style={styles.noReviews}>
 							<ThemedText style={styles.noReviewsText}>

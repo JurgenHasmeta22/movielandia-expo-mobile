@@ -6,6 +6,7 @@ import { Chip, Divider, IconButton, Snackbar } from "react-native-paper";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
+import { Review } from "@/components/ui/review";
 import { ReviewDialog } from "@/components/ui/review-dialog";
 import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
@@ -156,6 +157,42 @@ export default function ActorDetailScreen() {
 
 	const handleSubmitReview = async (content: string, rating: number) => {
 		await reviewMutation.mutateAsync({ content, rating });
+		setShowReviewDialog(false);
+	};
+
+	const handleEditReview = (review: any) => {
+		setEditingReview(review);
+		setShowReviewDialog(true);
+	};
+
+	const handleDeleteReview = async () => {
+		if (!user) return;
+		Alert.alert(
+			"Delete Review",
+			"Are you sure you want to delete this review?",
+			[
+				{ text: "Cancel", style: "cancel" },
+				{
+					text: "Delete",
+					style: "destructive",
+					onPress: async () => {
+						try {
+							await userService.deleteReview(Number(id), "actor");
+							queryClient.invalidateQueries({
+								queryKey: ["actor", id],
+							});
+							setSnackbarMessage("Review deleted");
+							setSnackbarVisible(true);
+						} catch (error: any) {
+							Alert.alert(
+								"Error",
+								error.message || "Failed to delete review",
+							);
+						}
+					},
+				},
+			],
+		);
 	};
 
 	return (
@@ -232,22 +269,41 @@ export default function ActorDetailScreen() {
 					</ThemedText>
 					{user && (
 						<IconButton
-							icon="plus"
-							size={24}
+							icon={actor.isReviewed ? "pencil" : "plus"}
+							size={20}
 							iconColor={colors.primary}
 							onPress={handleWriteReview}
 							style={styles.addReviewButton}
 						/>
 					)}
 				</View>
-				<View style={styles.noReviews}>
-					<ThemedText style={styles.noReviewsText}>
-						No reviews yet
-					</ThemedText>
-					<ThemedText style={styles.noReviewsSubtext}>
-						Be the first to share your thoughts!
-					</ThemedText>
-				</View>
+				{actor.reviews && actor.reviews.length > 0 ? (
+					actor.reviews.map((review) => (
+						<Review
+							key={review.id}
+							review={review}
+							onEdit={
+								user?.id === review.user.id
+									? () => handleEditReview(review)
+									: undefined
+							}
+							onDelete={
+								user?.id === review.user.id
+									? handleDeleteReview
+									: undefined
+							}
+						/>
+					))
+				) : (
+					<View style={styles.noReviews}>
+						<ThemedText style={styles.noReviewsText}>
+							No reviews yet
+						</ThemedText>
+						<ThemedText style={styles.noReviewsSubtext}>
+							Be the first to share your thoughts!
+						</ThemedText>
+					</View>
+				)}
 			</ScrollView>
 			<ReviewDialog
 				visible={showReviewDialog}

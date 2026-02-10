@@ -39,10 +39,10 @@ export default function EpisodeDetailScreen() {
 				throw new Error("Please sign in to bookmark");
 			}
 			if (isBookmarked) {
-				await userService.removeFavorite(Number(id), "episode");
+				await userService.removeFavorite(Number(id), "episodes");
 				return "removed";
 			} else {
-				await userService.addFavorite(Number(id), "episode");
+				await userService.addFavorite(Number(id), "episodes");
 				return "added";
 			}
 		},
