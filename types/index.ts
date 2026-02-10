@@ -273,6 +273,16 @@ export interface CrewListResponse {
 	crew: Crew[];
 }
 
+export interface SeasonListResponse {
+	count: number;
+	seasons: Season[];
+}
+
+export interface EpisodeListResponse {
+	count: number;
+	episodes: Episode[];
+}
+
 export interface ApiError {
 	message: string;
 	statusCode: number;

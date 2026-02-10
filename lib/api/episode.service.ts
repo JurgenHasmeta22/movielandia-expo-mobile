@@ -1,5 +1,5 @@
 import { ENDPOINTS } from "@/config/api.config";
-import { Episode, PaginatedResponse } from "@/types";
+import { Episode, EpisodeListResponse } from "@/types";
 import { apiClient } from "./client";
 
 export interface EpisodeQuery {
@@ -10,9 +10,7 @@ export interface EpisodeQuery {
 }
 
 export const episodeService = {
-	getAll: async (
-		query?: EpisodeQuery,
-	): Promise<PaginatedResponse<Episode>> => {
+	getAll: async (query?: EpisodeQuery): Promise<EpisodeListResponse> => {
 		return apiClient.get(ENDPOINTS.EPISODES.GET_ALL, { params: query });
 	},
 
@@ -22,14 +20,21 @@ export const episodeService = {
 		);
 	},
 
-	getBySeason: async (
-		seasonId: number,
-	): Promise<PaginatedResponse<Episode>> => {
+	getBySeason: async (seasonId: number): Promise<EpisodeListResponse> => {
 		return apiClient.get(
 			ENDPOINTS.EPISODES.GET_BY_SEASON.replace(
 				":seasonId",
 				seasonId.toString(),
 			),
 		);
+	},
+
+	search: async (
+		title: string,
+		params?: { page?: number; perPage?: number },
+	): Promise<EpisodeListResponse> => {
+		return apiClient.get(ENDPOINTS.EPISODES.SEARCH, {
+			params: { title, ...params },
+		});
 	},
 };

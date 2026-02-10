@@ -1,5 +1,5 @@
 import { ENDPOINTS } from "@/config/api.config";
-import { Crew, CrewListResponse, PaginatedResponse } from "@/types";
+import { Crew, CrewListResponse } from "@/types";
 import { apiClient } from "./client";
 
 export interface CrewQuery {
@@ -21,11 +21,11 @@ export const crewService = {
 	},
 
 	search: async (
-		name: string,
+		fullname: string,
 		query?: CrewQuery,
-	): Promise<PaginatedResponse<Crew>> => {
+	): Promise<CrewListResponse> => {
 		return apiClient.get(ENDPOINTS.CREW.SEARCH, {
-			params: { name, ...query },
+			params: { fullname, ...query },
 		});
 	},
 };

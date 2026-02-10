@@ -15,7 +15,9 @@ import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { actorService } from "@/lib/api/actor.service";
 import { crewService } from "@/lib/api/crew.service";
+import { episodeService } from "@/lib/api/episode.service";
 import { movieService } from "@/lib/api/movie.service";
+import { seasonService } from "@/lib/api/season.service";
 import { serieService } from "@/lib/api/serie.service";
 
 export default function SearchScreen() {
@@ -56,8 +58,25 @@ export default function SearchScreen() {
 		enabled: searchType === "crew" && submittedQuery.length > 0,
 	});
 
+	const { data: seasonResults, isLoading: seasonsLoading } = useQuery({
+		queryKey: ["seasons", "search", submittedQuery],
+		queryFn: () => seasonService.search(submittedQuery),
+		enabled: searchType === "seasons" && submittedQuery.length > 0,
+	});
+
+	const { data: episodeResults, isLoading: episodesLoading } = useQuery({
+		queryKey: ["episodes", "search", submittedQuery],
+		queryFn: () => episodeService.search(submittedQuery),
+		enabled: searchType === "episodes" && submittedQuery.length > 0,
+	});
+
 	const isLoading =
-		moviesLoading || seriesLoading || actorsLoading || crewLoading;
+		moviesLoading ||
+		seriesLoading ||
+		actorsLoading ||
+		crewLoading ||
+		seasonsLoading ||
+		episodesLoading;
 
 	return (
 		<ThemedView style={styles.container}>
@@ -74,23 +93,27 @@ export default function SearchScreen() {
 					iconColor={colors.text}
 				/>
 
-				<SegmentedButtons
-					value={searchType}
-					onValueChange={(value) => {
-						setSearchType(value);
-						if (submittedQuery.length > 0) {
-							setSubmittedQuery(submittedQuery);
-						}
-					}}
-					buttons={[
-						{ value: "movies", label: "Movies" },
-						{ value: "series", label: "Series" },
-						{ value: "actors", label: "Actors" },
-						{ value: "crew", label: "Crew" },
-					]}
-					style={styles.segmented}
-					density="small"
-				/>
+				<ScrollView horizontal showsHorizontalScrollIndicator={false}>
+					<SegmentedButtons
+						value={searchType}
+						onValueChange={(value) => {
+							setSearchType(value);
+							if (submittedQuery.length > 0) {
+								setSubmittedQuery(submittedQuery);
+							}
+						}}
+						buttons={[
+							{ value: "movies", label: "Movies" },
+							{ value: "series", label: "Series" },
+							{ value: "seasons", label: "Seasons" },
+							{ value: "episodes", label: "Episodes" },
+							{ value: "actors", label: "Actors" },
+							{ value: "crew", label: "Crew" },
+						]}
+						style={styles.segmented}
+						density="small"
+					/>
+				</ScrollView>
 			</View>
 
 			<ScrollView contentContainerStyle={styles.content}>
@@ -120,36 +143,30 @@ export default function SearchScreen() {
 					<View>
 						{searchType === "movies" && (
 							<View>
-								{(movieResults?.data || []).length === 0 ? (
+								{(movieResults?.movies || []).length === 0 ? (
 									<ThemedText style={styles.noResults}>
 										No movies found
 									</ThemedText>
 								) : (
 									<View style={styles.grid}>
-										{movieResults?.data &&
-											Array.isArray(movieResults.data) &&
-											movieResults.data.map((movie) => (
-												<MediaCard
-													key={movie.id}
-													id={movie.id}
-													title={movie.title}
-													photoSrcProd={
-														movie.photoSrcProd
-													}
-													dateAired={movie.dateAired}
-													ratingImdb={
-														movie.ratingImdb
-													}
-													ratings={movie.ratings}
-													description={
-														movie.description
-													}
-													type="movie"
-													isBookmarked={
-														movie.isBookmarked
-													}
-												/>
-											))}
+										{movieResults?.movies?.map((movie) => (
+											<MediaCard
+												key={movie.id}
+												id={movie.id}
+												title={movie.title}
+												photoSrcProd={
+													movie.photoSrcProd
+												}
+												dateAired={movie.dateAired}
+												ratingImdb={movie.ratingImdb}
+												ratings={movie.ratings}
+												description={movie.description}
+												type="movie"
+												isBookmarked={
+													movie.isBookmarked
+												}
+											/>
+										))}
 									</View>
 								)}
 							</View>
@@ -157,36 +174,107 @@ export default function SearchScreen() {
 
 						{searchType === "series" && (
 							<View>
-								{(serieResults?.data || []).length === 0 ? (
+								{(serieResults?.series || []).length === 0 ? (
 									<ThemedText style={styles.noResults}>
 										No series found
 									</ThemedText>
 								) : (
 									<View style={styles.grid}>
-										{serieResults?.data &&
-											Array.isArray(serieResults.data) &&
-											serieResults.data.map((serie) => (
+										{serieResults?.series?.map((serie) => (
+											<MediaCard
+												key={serie.id}
+												id={serie.id}
+												title={serie.title}
+												photoSrcProd={
+													serie.photoSrcProd
+												}
+												dateAired={serie.dateAired}
+												ratingImdb={serie.ratingImdb}
+												ratings={serie.ratings}
+												description={serie.description}
+												type="series"
+												isBookmarked={
+													serie.isBookmarked
+												}
+											/>
+										))}
+									</View>
+								)}
+							</View>
+						)}
+
+						{searchType === "seasons" && (
+							<View>
+								{(seasonResults?.seasons || []).length === 0 ? (
+									<ThemedText style={styles.noResults}>
+										No seasons found
+									</ThemedText>
+								) : (
+									<View style={styles.grid}>
+										{seasonResults?.seasons?.map(
+											(season) => (
 												<MediaCard
-													key={serie.id}
-													id={serie.id}
-													title={serie.title}
+													key={season.id}
+													id={season.id}
+													title={season.title}
 													photoSrcProd={
-														serie.photoSrcProd
+														season.photoSrcProd
 													}
-													dateAired={serie.dateAired}
+													dateAired={season.dateAired}
 													ratingImdb={
-														serie.ratingImdb
+														season.ratingImdb
 													}
-													ratings={serie.ratings}
+													ratings={season.ratings}
 													description={
-														serie.description
+														season.description
 													}
 													type="series"
 													isBookmarked={
-														serie.isBookmarked
+														season.isBookmarked
 													}
 												/>
-											))}
+											),
+										)}
+									</View>
+								)}
+							</View>
+						)}
+
+						{searchType === "episodes" && (
+							<View>
+								{(episodeResults?.episodes || []).length ===
+								0 ? (
+									<ThemedText style={styles.noResults}>
+										No episodes found
+									</ThemedText>
+								) : (
+									<View style={styles.grid}>
+										{episodeResults?.episodes?.map(
+											(episode) => (
+												<MediaCard
+													key={episode.id}
+													id={episode.id}
+													title={episode.title}
+													photoSrcProd={
+														episode.photoSrcProd
+													}
+													dateAired={
+														episode.dateAired
+													}
+													ratingImdb={
+														episode.ratingImdb
+													}
+													ratings={episode.ratings}
+													description={
+														episode.description
+													}
+													type="series"
+													isBookmarked={
+														episode.isBookmarked
+													}
+												/>
+											),
+										)}
 									</View>
 								)}
 							</View>
@@ -194,36 +282,29 @@ export default function SearchScreen() {
 
 						{searchType === "actors" && (
 							<View>
-								{(actorResults?.data || []).length === 0 ? (
+								{(actorResults?.actors || []).length === 0 ? (
 									<ThemedText style={styles.noResults}>
 										No actors found
 									</ThemedText>
 								) : (
-									<View style={styles.listContainer}>
-										{actorResults?.data &&
-											Array.isArray(actorResults.data) &&
-											actorResults.data.map((actor) => (
-												<View
-													key={actor.id}
-													style={styles.personCard}
-												>
-													<ThemedText type="defaultSemiBold">
-														{actor.name}
-													</ThemedText>
-													{actor.birthday && (
-														<ThemedText
-															style={
-																styles.personMeta
-															}
-														>
-															Born:{" "}
-															{new Date(
-																actor.birthday,
-															).getFullYear()}
-														</ThemedText>
-													)}
-												</View>
-											))}
+									<View style={styles.grid}>
+										{actorResults?.actors?.map((actor) => (
+											<MediaCard
+												key={actor.id}
+												id={actor.id}
+												title={actor.fullname}
+												photoSrcProd={
+													actor.photoSrcProd
+												}
+												ratingImdb={undefined}
+												ratings={actor.ratings}
+												description={actor.description}
+												type="movie"
+												isBookmarked={
+													actor.isBookmarked
+												}
+											/>
+										))}
 									</View>
 								)}
 							</View>
@@ -231,36 +312,29 @@ export default function SearchScreen() {
 
 						{searchType === "crew" && (
 							<View>
-								{(crewResults?.data || []).length === 0 ? (
+								{(crewResults?.crew || []).length === 0 ? (
 									<ThemedText style={styles.noResults}>
 										No crew members found
 									</ThemedText>
 								) : (
-									<View style={styles.listContainer}>
-										{crewResults?.data &&
-											Array.isArray(crewResults.data) &&
-											crewResults.data.map((crew) => (
-												<View
-													key={crew.id}
-													style={styles.personCard}
-												>
-													<ThemedText type="defaultSemiBold">
-														{crew.name}
-													</ThemedText>
-													{crew.birthday && (
-														<ThemedText
-															style={
-																styles.personMeta
-															}
-														>
-															Born:{" "}
-															{new Date(
-																crew.birthday,
-															).getFullYear()}
-														</ThemedText>
-													)}
-												</View>
-											))}
+									<View style={styles.grid}>
+										{crewResults?.crew?.map((member) => (
+											<MediaCard
+												key={member.id}
+												id={member.id}
+												title={member.fullname}
+												photoSrcProd={
+													member.photoSrcProd
+												}
+												ratingImdb={undefined}
+												ratings={member.ratings}
+												description={member.description}
+												type="movie"
+												isBookmarked={
+													member.isBookmarked
+												}
+											/>
+										))}
 									</View>
 								)}
 							</View>
@@ -321,21 +395,6 @@ const styles = StyleSheet.create({
 		flexWrap: "wrap",
 		padding: 8,
 		gap: 12,
-	},
-	listContainer: {
-		padding: 16,
-		gap: 12,
-	},
-	personCard: {
-		padding: 16,
-		marginBottom: 8,
-		borderRadius: 8,
-		backgroundColor: "rgba(0,0,0,0.05)",
-		gap: 4,
-	},
-	personMeta: {
-		opacity: 0.7,
-		fontSize: 14,
 	},
 	noResults: {
 		textAlign: "center",

@@ -1,5 +1,5 @@
 import { ENDPOINTS } from "@/config/api.config";
-import { Movie, MovieListResponse, PaginatedResponse } from "@/types";
+import { Movie, MovieListResponse } from "@/types";
 import { apiClient } from "./client";
 
 export interface MovieQuery {
@@ -30,7 +30,7 @@ export const movieService = {
 	search: async (
 		title: string,
 		query?: MovieQuery,
-	): Promise<PaginatedResponse<Movie>> => {
+	): Promise<MovieListResponse> => {
 		return apiClient.get(ENDPOINTS.MOVIES.SEARCH, {
 			params: { title, ...query },
 		});
@@ -40,7 +40,7 @@ export const movieService = {
 		id: number,
 		page = 1,
 		perPage = 6,
-	): Promise<PaginatedResponse<Movie>> => {
+	): Promise<MovieListResponse> => {
 		return apiClient.get(
 			ENDPOINTS.MOVIES.GET_RELATED.replace(":id", id.toString()),
 			{ params: { page, perPage } },

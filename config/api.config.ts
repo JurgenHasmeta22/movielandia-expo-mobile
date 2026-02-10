@@ -35,11 +35,13 @@ export const ENDPOINTS = {
 		GET_ONE: "/seasons/:id",
 		GET_BY_SERIE: "/seasons/serie/:serieId",
 		GET_EPISODES: "/seasons/:seasonId/episodes",
+		SEARCH: "/seasons/search",
 	},
 	EPISODES: {
 		GET_ALL: "/episodes",
 		GET_ONE: "/episodes/:id",
 		GET_BY_SEASON: "/episodes/season/:seasonId",
+		SEARCH: "/episodes/search",
 	},
 	ACTORS: {
 		GET_ALL: "/actors",
