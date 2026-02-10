@@ -92,28 +92,38 @@ export interface Episode {
 	voteCount?: number;
 }
 
+export interface ActorRatingInfo {
+	averageRating: number;
+	totalReviews: number;
+}
+
 export interface Actor {
 	id: number;
-	name: string;
-	biography?: string;
-	profilePath?: string;
-	birthday?: string;
-	deathday?: string;
-	placeOfBirth?: string;
-	popularity?: number;
-	knownForDepartment?: string;
+	fullname: string;
+	photoSrc?: string;
+	photoSrcProd?: string;
+	description?: string;
+	debut?: string;
+	ratings?: ActorRatingInfo;
+	isBookmarked?: boolean;
+	isReviewed?: boolean;
+}
+
+export interface CrewRatingInfo {
+	averageRating: number;
+	totalReviews: number;
 }
 
 export interface Crew {
 	id: number;
-	name: string;
-	biography?: string;
-	profilePath?: string;
-	birthday?: string;
-	deathday?: string;
-	placeOfBirth?: string;
-	popularity?: number;
-	knownForDepartment?: string;
+	fullname: string;
+	photoSrc?: string;
+	photoSrcProd?: string;
+	description?: string;
+	debut?: string;
+	ratings?: CrewRatingInfo;
+	isBookmarked?: boolean;
+	isReviewed?: boolean;
 }
 
 export interface Genre {

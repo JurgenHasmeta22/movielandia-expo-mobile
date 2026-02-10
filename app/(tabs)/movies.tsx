@@ -1,7 +1,13 @@
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { RefreshControl, ScrollView, StyleSheet, View } from "react-native";
-import { ActivityIndicator, Button, Chip } from "react-native-paper";
+import {
+	FlatList,
+	RefreshControl,
+	ScrollView,
+	StyleSheet,
+	View,
+} from "react-native";
+import { ActivityIndicator, Chip } from "react-native-paper";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
@@ -10,19 +16,31 @@ import { genreService } from "@/lib/api/genre.service";
 import { movieService } from "@/lib/api/movie.service";
 
 export default function MoviesScreen() {
-	const [page, setPage] = useState(1);
 	const [selectedGenre, setSelectedGenre] = useState<number | undefined>();
 	const [refreshing, setRefreshing] = useState(false);
 
 	const {
-		data: movies,
+		data,
 		isLoading,
 		isError,
+		fetchNextPage,
+		hasNextPage,
+		isFetchingNextPage,
 		refetch,
-	} = useQuery({
-		queryKey: ["movies", page, selectedGenre],
-		queryFn: () =>
-			movieService.getAll({ page, perPage: 20, genreId: selectedGenre }),
+	} = useInfiniteQuery({
+		queryKey: ["movies", selectedGenre],
+		queryFn: ({ pageParam = 1 }) =>
+			movieService.getAll({
+				page: pageParam,
+				perPage: 20,
+				genreId: selectedGenre,
+			}),
+		getNextPageParam: (lastPage, allPages) => {
+			const currentPage = allPages.length;
+			const totalPages = Math.ceil((lastPage.count || 0) / 20);
+			return currentPage < totalPages ? currentPage + 1 : undefined;
+		},
+		initialPageParam: 1,
 	});
 
 	const { data: genres } = useQuery({
@@ -34,6 +52,26 @@ export default function MoviesScreen() {
 		setRefreshing(true);
 		await refetch();
 		setRefreshing(false);
+	};
+
+	const movies = data?.pages.flatMap((page) => page.movies || []) || [];
+
+	const handleLoadMore = () => {
+		if (hasNextPage && !isFetchingNextPage) {
+			fetchNextPage();
+		}
+	};
+
+	const renderFooter = () => {
+		if (!isFetchingNextPage) return null;
+		return (
+			<View style={styles.footer}>
+				<ActivityIndicator size="large" color="#e50914" />
+				<ThemedText style={styles.loadingText}>
+					Loading more movies...
+				</ThemedText>
+			</View>
+		);
 	};
 
 	return (
@@ -65,75 +103,59 @@ export default function MoviesScreen() {
 					))}
 			</ScrollView>
 
-			<ScrollView
-				contentContainerStyle={styles.content}
-				refreshControl={
-					<RefreshControl
-						refreshing={refreshing}
-						onRefresh={onRefresh}
-					/>
-				}
-			>
-				{isLoading ? (
-					<View style={styles.loadingContainer}>
-						<ActivityIndicator size="large" />
-						<ThemedText style={styles.loadingText}>
-							Loading movies...
-						</ThemedText>
-					</View>
-				) : isError ? (
-					<View style={styles.loadingContainer}>
-						<ThemedText style={styles.errorText}>
-							Error loading movies. Pull to refresh.
-						</ThemedText>
-					</View>
-				) : (movies?.movies || []).length === 0 ? (
-					<View style={styles.loadingContainer}>
-						<ThemedText style={styles.emptyText}>
-							No movies found.
-						</ThemedText>
-					</View>
-				) : (
-					<View style={styles.grid}>
-						{movies?.movies &&
-							Array.isArray(movies.movies) &&
-							movies.movies.map((movie) => (
-								<MediaCard
-									key={movie.id}
-									id={movie.id}
-									title={movie.title}
-									photoSrcProd={movie.photoSrcProd}
-									dateAired={movie.dateAired}
-									ratingImdb={movie.ratingImdb}
-									ratings={movie.ratings}
-									description={movie.description}
-									type="movie"
-									isBookmarked={movie.isBookmarked}
-								/>
-							))}
-					</View>
-				)}
-
-				{movies && movies.count > 20 && (
-					<View style={styles.pagination}>
-						<Button
-							mode="contained"
-							onPress={() => setPage(page - 1)}
-							disabled={page === 1}
-						>
-							Previous
-						</Button>
-						<ThemedText>Page {page}</ThemedText>
-						<Button
-							mode="contained"
-							onPress={() => setPage(page + 1)}
-							disabled={(movies?.movies?.length || 0) < 20}
-						>
-							Next
-						</Button>
-					</View>
-				)}
-			</ScrollView>
+			{isLoading ? (
+				<View style={styles.loadingContainer}>
+					<ActivityIndicator size="large" />
+					<ThemedText style={styles.loadingText}>
+						Loading movies...
+					</ThemedText>
+				</View>
+			) : isError ? (
+				<View style={styles.loadingContainer}>
+					<ThemedText style={styles.errorText}>
+						Error loading movies. Pull to refresh.
+					</ThemedText>
+				</View>
+			) : movies.length === 0 ? (
+				<View style={styles.loadingContainer}>
+					<ThemedText style={styles.emptyText}>
+						No movies found.
+					</ThemedText>
+				</View>
+			) : (
+				<FlatList
+					data={movies}
+					keyExtractor={(item) => `movie-${item.id}`}
+					numColumns={2}
+					columnWrapperStyle={styles.row}
+					contentContainerStyle={styles.content}
+					renderItem={({ item }) => (
+						<View style={styles.gridItem}>
+							<MediaCard
+								key={item.id}
+								id={item.id}
+								title={item.title}
+								photoSrcProd={item.photoSrcProd}
+								dateAired={item.dateAired}
+								ratingImdb={item.ratingImdb}
+								ratings={item.ratings}
+								description={item.description}
+								type="movie"
+								isBookmarked={item.isBookmarked}
+							/>
+						</View>
+					)}
+					onEndReached={handleLoadMore}
+					onEndReachedThreshold={0.5}
+					ListFooterComponent={renderFooter}
+					refreshControl={
+						<RefreshControl
+							refreshing={refreshing}
+							onRefresh={onRefresh}
+						/>
+					}
+				/>
+			)}
 		</ThemedView>
 	);
 }
@@ -174,20 +196,15 @@ const styles = StyleSheet.create({
 	emptyText: {
 		opacity: 0.7,
 	},
-	grid: {
-		flexDirection: "row",
-		flexWrap: "wrap",
+	row: {
 		justifyContent: "space-between",
-		gap: 8,
 	},
 	gridItem: {
 		width: "48%",
+		marginBottom: 16,
 	},
-	pagination: {
-		flexDirection: "row",
-		justifyContent: "space-between",
+	footer: {
+		paddingVertical: 20,
 		alignItems: "center",
-		marginTop: 24,
-		gap: 16,
 	},
 });

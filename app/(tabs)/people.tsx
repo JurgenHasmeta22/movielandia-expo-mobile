@@ -1,7 +1,7 @@
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { useState } from "react";
-import { RefreshControl, ScrollView, StyleSheet, View } from "react-native";
+import { FlatList, RefreshControl, StyleSheet, View } from "react-native";
 import { ActivityIndicator, Card, SegmentedButtons } from "react-native-paper";
 
 import { ThemedText } from "@/components/themed-text";
@@ -14,30 +14,52 @@ export default function PeopleScreen() {
 	const [refreshing, setRefreshing] = useState(false);
 
 	const {
-		data: actors,
+		data: actorsData,
 		isLoading: actorsLoading,
 		isError: actorsError,
+		fetchNextPage: fetchNextActors,
+		hasNextPage: hasNextActors,
+		isFetchingNextPage: isFetchingNextActors,
 		refetch: refetchActors,
-	} = useQuery({
+	} = useInfiniteQuery({
 		queryKey: ["actors"],
-		queryFn: () => actorService.getAll({ page: 1, perPage: 100 }),
+		queryFn: ({ pageParam = 1 }) =>
+			actorService.getAll({ page: pageParam, perPage: 20 }),
+		getNextPageParam: (lastPage, allPages) => {
+			const currentPage = allPages.length;
+			const totalPages = Math.ceil((lastPage.count || 0) / 20);
+			return currentPage < totalPages ? currentPage + 1 : undefined;
+		},
+		initialPageParam: 1,
 		enabled: personType === "actors",
 	});
 
 	const {
-		data: crew,
+		data: crewData,
 		isLoading: crewLoading,
 		isError: crewError,
+		fetchNextPage: fetchNextCrew,
+		hasNextPage: hasNextCrew,
+		isFetchingNextPage: isFetchingNextCrew,
 		refetch: refetchCrew,
-	} = useQuery({
+	} = useInfiniteQuery({
 		queryKey: ["crew"],
-		queryFn: () => crewService.getAll({ page: 1, perPage: 100 }),
+		queryFn: ({ pageParam = 1 }) =>
+			crewService.getAll({ page: pageParam, perPage: 20 }),
+		getNextPageParam: (lastPage, allPages) => {
+			const currentPage = allPages.length;
+			const totalPages = Math.ceil((lastPage.count || 0) / 20);
+			return currentPage < totalPages ? currentPage + 1 : undefined;
+		},
+		initialPageParam: 1,
 		enabled: personType === "crew",
 	});
 
 	const isLoading = personType === "actors" ? actorsLoading : crewLoading;
 	const isError = personType === "actors" ? actorsError : crewError;
-	const peopleList = personType === "actors" ? actors?.actors : crew?.crew;
+	const actors = actorsData?.pages.flatMap((page) => page.actors || []) || [];
+	const crew = crewData?.pages.flatMap((page) => page.crew || []) || [];
+	const peopleList = personType === "actors" ? actors : crew;
 
 	const onRefresh = async () => {
 		setRefreshing(true);
@@ -47,6 +69,32 @@ export default function PeopleScreen() {
 			await refetchCrew();
 		}
 		setRefreshing(false);
+	};
+
+	const handleLoadMore = () => {
+		if (personType === "actors") {
+			if (hasNextActors && !isFetchingNextActors) {
+				fetchNextActors();
+			}
+		} else {
+			if (hasNextCrew && !isFetchingNextCrew) {
+				fetchNextCrew();
+			}
+		}
+	};
+
+	const renderFooter = () => {
+		const isFetching =
+			personType === "actors" ? isFetchingNextActors : isFetchingNextCrew;
+		if (!isFetching) return null;
+		return (
+			<View style={styles.footer}>
+				<ActivityIndicator size="large" color="#e50914" />
+				<ThemedText style={styles.loadingText}>
+					Loading more {personType}...
+				</ThemedText>
+			</View>
+		);
 	};
 
 	return (
@@ -71,79 +119,82 @@ export default function PeopleScreen() {
 				/>
 			</View>
 
-			<ScrollView
-				contentContainerStyle={styles.content}
-				refreshControl={
-					<RefreshControl
-						refreshing={refreshing}
-						onRefresh={onRefresh}
-					/>
-				}
-			>
-				{isLoading ? (
-					<View style={styles.loadingContainer}>
-						<ActivityIndicator size="large" color="#e50914" />
-						<ThemedText style={styles.loadingText}>
-							Loading {personType}...
-						</ThemedText>
-					</View>
-				) : isError ? (
-					<View style={styles.loadingContainer}>
-						<ThemedText style={styles.errorText}>
-							Error loading {personType}. Pull to refresh.
-						</ThemedText>
-					</View>
-				) : (peopleList || []).length === 0 ? (
-					<View style={styles.loadingContainer}>
-						<ThemedText style={styles.emptyText}>
-							No {personType} found.
-						</ThemedText>
-					</View>
-				) : (
-					<View style={styles.grid}>
-						{peopleList &&
-							Array.isArray(peopleList) &&
-							peopleList.map((person: any) => (
-								<Card
-									key={person.id}
-									style={styles.card}
-									onPress={() => {
-										const route =
-											personType === "actors"
-												? `/actors/${person.id}`
-												: `/crew/${person.id}`;
-										router.push(route as any);
+			{isLoading ? (
+				<View style={styles.loadingContainer}>
+					<ActivityIndicator size="large" color="#e50914" />
+					<ThemedText style={styles.loadingText}>
+						Loading {personType}...
+					</ThemedText>
+				</View>
+			) : isError ? (
+				<View style={styles.loadingContainer}>
+					<ThemedText style={styles.errorText}>
+						Error loading {personType}. Pull to refresh.
+					</ThemedText>
+				</View>
+			) : peopleList.length === 0 ? (
+				<View style={styles.loadingContainer}>
+					<ThemedText style={styles.emptyText}>
+						No {personType} found.
+					</ThemedText>
+				</View>
+			) : (
+				<FlatList
+					data={peopleList}
+					keyExtractor={(item) => `${personType}-${item.id}`}
+					numColumns={2}
+					columnWrapperStyle={styles.row}
+					contentContainerStyle={styles.content}
+					renderItem={({ item }) => (
+						<Card
+							style={styles.card}
+							onPress={() => {
+								const route =
+									personType === "actors"
+										? `/actors/${item.id}`
+										: `/crew/${item.id}`;
+								router.push(route as any);
+							}}
+						>
+							<View style={styles.cardInner}>
+								<Card.Cover
+									source={{
+										uri:
+											item.photoSrcProd ||
+											"https://via.placeholder.com/160x240",
 									}}
-								>
-									<Card.Cover
-										source={{
-											uri:
-												person.photoSrcProd ||
-												"https://via.placeholder.com/160x240",
-										}}
-										style={styles.cardImage}
-									/>
-									<Card.Content style={styles.cardContent}>
+									style={styles.cardImage}
+								/>
+								<Card.Content style={styles.cardContent}>
+									<ThemedText
+										style={styles.personName}
+										numberOfLines={1}
+									>
+										{item.fullname}
+									</ThemedText>
+									{item.debut && (
 										<ThemedText
-											style={styles.personName}
+											style={styles.knownFor}
 											numberOfLines={1}
 										>
-											{person.fullname || person.name}
+											Debut: {item.debut}
 										</ThemedText>
-										{person.knownFor && (
-											<ThemedText
-												style={styles.knownFor}
-												numberOfLines={1}
-											>
-												{person.knownFor}
-											</ThemedText>
-										)}
-									</Card.Content>
-								</Card>
-							))}
-					</View>
-				)}
-			</ScrollView>
+									)}
+								</Card.Content>
+							</View>
+						</Card>
+					)}
+					onEndReached={handleLoadMore}
+					onEndReachedThreshold={0.5}
+					ListFooterComponent={renderFooter}
+					refreshControl={
+						<RefreshControl
+							refreshing={refreshing}
+							onRefresh={onRefresh}
+						/>
+					}
+				/>
+			)}
 		</ThemedView>
 	);
 }
@@ -180,18 +231,17 @@ const styles = StyleSheet.create({
 	emptyText: {
 		opacity: 0.7,
 	},
-	grid: {
-		flexDirection: "row",
-		flexWrap: "wrap",
+	row: {
 		justifyContent: "space-between",
-		gap: 12,
 	},
 	card: {
 		width: "48%",
-		marginBottom: 12,
 		backgroundColor: "#1a1a1a",
 		borderRadius: 12,
+	},
+	cardInner: {
 		overflow: "hidden",
+		borderRadius: 12,
 	},
 	cardImage: {
 		height: 240,
@@ -199,15 +249,18 @@ const styles = StyleSheet.create({
 	},
 	cardContent: {
 		paddingVertical: 12,
-		paddingHorizontal: 8,
 	},
 	personName: {
-		fontSize: 14,
 		fontWeight: "600",
-		marginBottom: 4,
+		fontSize: 14,
 	},
 	knownFor: {
 		fontSize: 12,
 		opacity: 0.7,
+		marginTop: 4,
+	},
+	footer: {
+		paddingVertical: 20,
+		alignItems: "center",
 	},
 });

@@ -6,8 +6,7 @@ import { Button, Card, Chip } from "react-native-paper";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { serieService } from "@/lib/api/serie.service";
-import { formatDate, formatRating } from "@/utils/format.utils";
-import { getBackdropUrl, getPosterUrl } from "@/utils/image.utils";
+import { formatDate } from "@/utils/format.utils";
 
 export default function SerieDetailScreen() {
 	const { id } = useLocalSearchParams<{ id: string }>();
@@ -37,19 +36,19 @@ export default function SerieDetailScreen() {
 	return (
 		<ThemedView style={styles.container}>
 			<ScrollView>
-				{serie.backdropPath && (
+				{serie.photoSrcProd && (
 					<Image
-						source={{ uri: getBackdropUrl(serie.backdropPath) }}
+						source={{ uri: serie.photoSrcProd }}
 						style={styles.backdrop}
 					/>
 				)}
 
 				<View style={styles.content}>
 					<View style={styles.header}>
-						{serie.posterPath && (
+						{serie.photoSrc && (
 							<Image
 								source={{
-									uri: getPosterUrl(serie.posterPath),
+									uri: serie.photoSrc,
 								}}
 								style={styles.poster}
 							/>
@@ -58,20 +57,36 @@ export default function SerieDetailScreen() {
 							<ThemedText type="title" style={styles.title}>
 								{serie.title}
 							</ThemedText>
-							{serie.originalTitle &&
-								serie.originalTitle !== serie.title && (
-									<ThemedText style={styles.originalTitle}>
-										{serie.originalTitle}
-									</ThemedText>
-								)}
 							<View style={styles.meta}>
-								<Chip icon="star" style={styles.chip}>
-									{formatRating(serie.voteAverage)}
-								</Chip>
-								<Chip style={styles.chip}>
-									{formatDate(serie.firstAirDate)}
-								</Chip>
+								{serie.ratingImdb && (
+									<Chip icon="star" style={styles.chip}>
+										{serie.ratingImdb.toFixed(1)}
+									</Chip>
+								)}
+								{serie.dateAired && (
+									<Chip style={styles.chip}>
+										{formatDate(serie.dateAired)}
+									</Chip>
+								)}
 							</View>
+							{serie.ratings &&
+								serie.ratings.averageRating > 0 && (
+									<View style={styles.userRating}>
+										<ThemedText
+											style={styles.userRatingText}
+										>
+											User Rating:{" "}
+											{serie.ratings.averageRating.toFixed(
+												1,
+											)}
+											/5
+										</ThemedText>
+										<ThemedText style={styles.reviewCount}>
+											({serie.ratings.totalReviews}{" "}
+											reviews)
+										</ThemedText>
+									</View>
+								)}
 						</View>
 					</View>
 
@@ -87,47 +102,21 @@ export default function SerieDetailScreen() {
 
 					<Card style={styles.card}>
 						<Card.Content>
-							<ThemedText type="subtitle">Overview</ThemedText>
+							<ThemedText type="subtitle">Description</ThemedText>
 							<ThemedText style={styles.overview}>
-								{serie.overview || "No overview available"}
+								{serie.description ||
+									"No description available"}
 							</ThemedText>
 						</Card.Content>
 					</Card>
 
-					{(serie.numberOfSeasons ||
-						serie.numberOfEpisodes ||
-						serie.status) && (
+					{serie.trailerSrc && (
 						<Card style={styles.card}>
 							<Card.Content>
-								<ThemedText type="subtitle">Details</ThemedText>
-								{serie.numberOfSeasons ? (
-									<View style={styles.detailRow}>
-										<ThemedText style={styles.detailLabel}>
-											Seasons:
-										</ThemedText>
-										<ThemedText>
-											{serie.numberOfSeasons}
-										</ThemedText>
-									</View>
-								) : null}
-								{serie.numberOfEpisodes ? (
-									<View style={styles.detailRow}>
-										<ThemedText style={styles.detailLabel}>
-											Episodes:
-										</ThemedText>
-										<ThemedText>
-											{serie.numberOfEpisodes}
-										</ThemedText>
-									</View>
-								) : null}
-								{serie.status && (
-									<View style={styles.detailRow}>
-										<ThemedText style={styles.detailLabel}>
-											Status:
-										</ThemedText>
-										<ThemedText>{serie.status}</ThemedText>
-									</View>
-								)}
+								<ThemedText type="subtitle">Trailer</ThemedText>
+								<ThemedText style={styles.detailRow}>
+									Available
+								</ThemedText>
 							</Card.Content>
 						</Card>
 					)}
@@ -214,6 +203,18 @@ const styles = StyleSheet.create({
 	detailLabel: {
 		fontWeight: "600",
 		marginRight: 8,
+	},
+	userRating: {
+		marginTop: 8,
+	},
+	userRatingText: {
+		fontSize: 14,
+		fontWeight: "600",
+	},
+	reviewCount: {
+		fontSize: 12,
+		opacity: 0.7,
+		marginTop: 2,
 	},
 	actions: {
 		gap: 12,

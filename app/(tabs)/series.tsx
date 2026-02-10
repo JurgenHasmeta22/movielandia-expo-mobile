@@ -1,7 +1,13 @@
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { RefreshControl, ScrollView, StyleSheet, View } from "react-native";
-import { ActivityIndicator, Button, Chip } from "react-native-paper";
+import {
+	FlatList,
+	RefreshControl,
+	ScrollView,
+	StyleSheet,
+	View,
+} from "react-native";
+import { ActivityIndicator, Chip } from "react-native-paper";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
@@ -10,19 +16,31 @@ import { genreService } from "@/lib/api/genre.service";
 import { serieService } from "@/lib/api/serie.service";
 
 export default function SeriesScreen() {
-	const [page, setPage] = useState(1);
 	const [selectedGenre, setSelectedGenre] = useState<number | undefined>();
 	const [refreshing, setRefreshing] = useState(false);
 
 	const {
-		data: series,
+		data,
 		isLoading,
 		isError,
+		fetchNextPage,
+		hasNextPage,
+		isFetchingNextPage,
 		refetch,
-	} = useQuery({
-		queryKey: ["series", page, selectedGenre],
-		queryFn: () =>
-			serieService.getAll({ page, perPage: 20, genreId: selectedGenre }),
+	} = useInfiniteQuery({
+		queryKey: ["series", selectedGenre],
+		queryFn: ({ pageParam = 1 }) =>
+			serieService.getAll({
+				page: pageParam,
+				perPage: 20,
+				genreId: selectedGenre,
+			}),
+		getNextPageParam: (lastPage, allPages) => {
+			const currentPage = allPages.length;
+			const totalPages = Math.ceil((lastPage.count || 0) / 20);
+			return currentPage < totalPages ? currentPage + 1 : undefined;
+		},
+		initialPageParam: 1,
 	});
 
 	const { data: genres } = useQuery({
@@ -34,6 +52,26 @@ export default function SeriesScreen() {
 		setRefreshing(true);
 		await refetch();
 		setRefreshing(false);
+	};
+
+	const series = data?.pages.flatMap((page) => page.series || []) || [];
+
+	const handleLoadMore = () => {
+		if (hasNextPage && !isFetchingNextPage) {
+			fetchNextPage();
+		}
+	};
+
+	const renderFooter = () => {
+		if (!isFetchingNextPage) return null;
+		return (
+			<View style={styles.footer}>
+				<ActivityIndicator size="large" color="#e50914" />
+				<ThemedText style={styles.loadingText}>
+					Loading more series...
+				</ThemedText>
+			</View>
+		);
 	};
 
 	return (
@@ -65,75 +103,59 @@ export default function SeriesScreen() {
 					))}
 			</ScrollView>
 
-			<ScrollView
-				contentContainerStyle={styles.content}
-				refreshControl={
-					<RefreshControl
-						refreshing={refreshing}
-						onRefresh={onRefresh}
-					/>
-				}
-			>
-				{isLoading ? (
-					<View style={styles.loadingContainer}>
-						<ActivityIndicator size="large" />
-						<ThemedText style={styles.loadingText}>
-							Loading series...
-						</ThemedText>
-					</View>
-				) : isError ? (
-					<View style={styles.loadingContainer}>
-						<ThemedText style={styles.errorText}>
-							Error loading series. Pull to refresh.
-						</ThemedText>
-					</View>
-				) : (series?.series || []).length === 0 ? (
-					<View style={styles.loadingContainer}>
-						<ThemedText style={styles.emptyText}>
-							No series found.
-						</ThemedText>
-					</View>
-				) : (
-					<View style={styles.grid}>
-						{series?.series &&
-							Array.isArray(series.series) &&
-							series.series.map((serie) => (
-								<MediaCard
-									key={serie.id}
-									id={serie.id}
-									title={serie.title}
-									photoSrcProd={serie.photoSrcProd}
-									dateAired={serie.dateAired}
-									ratingImdb={serie.ratingImdb}
-									ratings={serie.ratings}
-									description={serie.description}
-									type="series"
-									isBookmarked={serie.isBookmarked}
-								/>
-							))}
-					</View>
-				)}
-
-				{series && series.count > 20 && (
-					<View style={styles.pagination}>
-						<Button
-							mode="contained"
-							onPress={() => setPage(page - 1)}
-							disabled={page === 1}
-						>
-							Previous
-						</Button>
-						<ThemedText>Page {page}</ThemedText>
-						<Button
-							mode="contained"
-							onPress={() => setPage(page + 1)}
-							disabled={(series?.series?.length || 0) < 20}
-						>
-							Next
-						</Button>
-					</View>
-				)}
-			</ScrollView>
+			{isLoading ? (
+				<View style={styles.loadingContainer}>
+					<ActivityIndicator size="large" />
+					<ThemedText style={styles.loadingText}>
+						Loading series...
+					</ThemedText>
+				</View>
+			) : isError ? (
+				<View style={styles.loadingContainer}>
+					<ThemedText style={styles.errorText}>
+						Error loading series. Pull to refresh.
+					</ThemedText>
+				</View>
+			) : series.length === 0 ? (
+				<View style={styles.loadingContainer}>
+					<ThemedText style={styles.emptyText}>
+						No series found.
+					</ThemedText>
+				</View>
+			) : (
+				<FlatList
+					data={series}
+					keyExtractor={(item) => `serie-${item.id}`}
+					numColumns={2}
+					columnWrapperStyle={styles.row}
+					contentContainerStyle={styles.content}
+					renderItem={({ item }) => (
+						<View style={styles.gridItem}>
+							<MediaCard
+								key={item.id}
+								id={item.id}
+								title={item.title}
+								photoSrcProd={item.photoSrcProd}
+								dateAired={item.dateAired}
+								ratingImdb={item.ratingImdb}
+								ratings={item.ratings}
+								description={item.description}
+								type="series"
+								isBookmarked={item.isBookmarked}
+							/>
+						</View>
+					)}
+					onEndReached={handleLoadMore}
+					onEndReachedThreshold={0.5}
+					ListFooterComponent={renderFooter}
+					refreshControl={
+						<RefreshControl
+							refreshing={refreshing}
+							onRefresh={onRefresh}
+						/>
+					}
+				/>
+			)}
 		</ThemedView>
 	);
 }
@@ -174,20 +196,14 @@ const styles = StyleSheet.create({
 	emptyText: {
 		opacity: 0.7,
 	},
-	grid: {
-		flexDirection: "row",
-		flexWrap: "wrap",
+	row: {
 		justifyContent: "space-between",
-		gap: 8,
 	},
 	gridItem: {
 		width: "48%",
 	},
-	pagination: {
-		flexDirection: "row",
-		justifyContent: "space-between",
+	footer: {
+		paddingVertical: 20,
 		alignItems: "center",
-		marginTop: 24,
-		gap: 16,
 	},
 });

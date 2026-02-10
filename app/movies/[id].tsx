@@ -7,12 +7,9 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { movieService } from "@/lib/api/movie.service";
 import {
-	formatDate,
-	formatMoney,
-	formatRating,
-	formatRuntime,
+    formatDate,
+    formatRuntime
 } from "@/utils/format.utils";
-import { getBackdropUrl, getPosterUrl } from "@/utils/image.utils";
 
 export default function MovieDetailScreen() {
 	const { id } = useLocalSearchParams<{ id: string }>();
@@ -42,19 +39,19 @@ export default function MovieDetailScreen() {
 	return (
 		<ThemedView style={styles.container}>
 			<ScrollView>
-				{movie.backdropPath && (
+				{movie.photoSrcProd && (
 					<Image
-						source={{ uri: getBackdropUrl(movie.backdropPath) }}
+						source={{ uri: movie.photoSrcProd }}
 						style={styles.backdrop}
 					/>
 				)}
 
 				<View style={styles.content}>
 					<View style={styles.header}>
-						{movie.posterPath && (
+						{movie.photoSrc && (
 							<Image
 								source={{
-									uri: getPosterUrl(movie.posterPath),
+									uri: movie.photoSrc,
 								}}
 								style={styles.poster}
 							/>
@@ -63,20 +60,36 @@ export default function MovieDetailScreen() {
 							<ThemedText type="title" style={styles.title}>
 								{movie.title}
 							</ThemedText>
-							{movie.originalTitle &&
-								movie.originalTitle !== movie.title && (
-									<ThemedText style={styles.originalTitle}>
-										{movie.originalTitle}
-									</ThemedText>
-								)}
 							<View style={styles.meta}>
-								<Chip icon="star" style={styles.chip}>
-									{formatRating(movie.voteAverage)}
-								</Chip>
-								<Chip style={styles.chip}>
-									{formatDate(movie.releaseDate)}
-								</Chip>
+								{movie.ratingImdb && (
+									<Chip icon="star" style={styles.chip}>
+										{movie.ratingImdb.toFixed(1)}
+									</Chip>
+								)}
+								{movie.dateAired && (
+									<Chip style={styles.chip}>
+										{formatDate(movie.dateAired)}
+									</Chip>
+								)}
 							</View>
+							{movie.ratings &&
+								movie.ratings.averageRating > 0 && (
+									<View style={styles.userRating}>
+										<ThemedText
+											style={styles.userRatingText}
+										>
+											User Rating:{" "}
+											{movie.ratings.averageRating.toFixed(
+												1,
+											)}
+											/5
+										</ThemedText>
+										<ThemedText style={styles.reviewCount}>
+											({movie.ratings.totalReviews}{" "}
+											reviews)
+										</ThemedText>
+									</View>
+								)}
 						</View>
 					</View>
 
@@ -92,47 +105,26 @@ export default function MovieDetailScreen() {
 
 					<Card style={styles.card}>
 						<Card.Content>
-							<ThemedText type="subtitle">Overview</ThemedText>
+							<ThemedText type="subtitle">Description</ThemedText>
 							<ThemedText style={styles.overview}>
-								{movie.overview || "No overview available"}
+								{movie.description ||
+									"No description available"}
 							</ThemedText>
 						</Card.Content>
 					</Card>
 
-					{(movie.runtime || movie.budget || movie.revenue) && (
+					{movie.duration && (
 						<Card style={styles.card}>
 							<Card.Content>
 								<ThemedText type="subtitle">Details</ThemedText>
-								{movie.runtime && (
-									<View style={styles.detailRow}>
-										<ThemedText style={styles.detailLabel}>
-											Runtime:
-										</ThemedText>
-										<ThemedText>
-											{formatRuntime(movie.runtime)}
-										</ThemedText>
-									</View>
-								)}
-								{movie.budget ? (
-									<View style={styles.detailRow}>
-										<ThemedText style={styles.detailLabel}>
-											Budget:
-										</ThemedText>
-										<ThemedText>
-											{formatMoney(movie.budget)}
-										</ThemedText>
-									</View>
-								) : null}
-								{movie.revenue ? (
-									<View style={styles.detailRow}>
-										<ThemedText style={styles.detailLabel}>
-											Revenue:
-										</ThemedText>
-										<ThemedText>
-											{formatMoney(movie.revenue)}
-										</ThemedText>
-									</View>
-								) : null}
+								<View style={styles.detailRow}>
+									<ThemedText style={styles.detailLabel}>
+										Runtime:
+									</ThemedText>
+									<ThemedText>
+										{formatRuntime(movie.duration)}
+									</ThemedText>
+								</View>
 							</Card.Content>
 						</Card>
 					)}
@@ -219,6 +211,18 @@ const styles = StyleSheet.create({
 	detailLabel: {
 		fontWeight: "600",
 		marginRight: 8,
+	},
+	userRating: {
+		marginTop: 8,
+	},
+	userRatingText: {
+		fontSize: 14,
+		fontWeight: "600",
+	},
+	reviewCount: {
+		fontSize: 12,
+		opacity: 0.7,
+		marginTop: 2,
 	},
 	actions: {
 		gap: 12,

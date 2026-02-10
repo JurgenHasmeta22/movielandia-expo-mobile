@@ -5,14 +5,14 @@ import { Card } from "react-native-paper";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { actorService } from "@/lib/api/actor.service";
+import { crewService } from "@/lib/api/crew.service";
 
-export default function ActorDetailScreen() {
+export default function CrewDetailScreen() {
 	const { id } = useLocalSearchParams<{ id: string }>();
 
-	const { data: actor, isLoading } = useQuery({
-		queryKey: ["actor", id],
-		queryFn: () => actorService.getOne(Number(id)),
+	const { data: crew, isLoading } = useQuery({
+		queryKey: ["crew", id],
+		queryFn: () => crewService.getOne(Number(id)),
 		enabled: !!id,
 	});
 
@@ -24,10 +24,10 @@ export default function ActorDetailScreen() {
 		);
 	}
 
-	if (!actor) {
+	if (!crew) {
 		return (
 			<ThemedView style={styles.container}>
-				<ThemedText>Actor not found</ThemedText>
+				<ThemedText>Crew member not found</ThemedText>
 			</ThemedView>
 		);
 	}
@@ -36,39 +36,39 @@ export default function ActorDetailScreen() {
 		<ThemedView style={styles.container}>
 			<ScrollView contentContainerStyle={styles.content}>
 				<View style={styles.header}>
-					{actor.photoSrcProd && (
+					{crew.photoSrcProd && (
 						<Image
-							source={{ uri: actor.photoSrcProd }}
+							source={{ uri: crew.photoSrcProd }}
 							style={styles.profile}
 						/>
 					)}
 					<View style={styles.headerInfo}>
-						<ThemedText type="title">{actor.fullname}</ThemedText>
-						{actor.debut && (
+						<ThemedText type="title">{crew.fullname}</ThemedText>
+						{crew.debut && (
 							<ThemedText style={styles.department}>
-								Debut: {actor.debut}
+								Debut: {crew.debut}
 							</ThemedText>
 						)}
-						{actor.ratings && actor.ratings.averageRating > 0 && (
+						{crew.ratings && crew.ratings.averageRating > 0 && (
 							<View style={styles.userRating}>
 								<ThemedText style={styles.userRatingText}>
 									Rating:{" "}
-									{actor.ratings.averageRating.toFixed(1)}/5
+									{crew.ratings.averageRating.toFixed(1)}/5
 								</ThemedText>
 								<ThemedText style={styles.reviewCount}>
-									({actor.ratings.totalReviews} reviews)
+									({crew.ratings.totalReviews} reviews)
 								</ThemedText>
 							</View>
 						)}
 					</View>
 				</View>
 
-				{actor.description && (
+				{crew.description && (
 					<Card style={styles.card}>
 						<Card.Content>
 							<ThemedText type="subtitle">Biography</ThemedText>
 							<ThemedText style={styles.biography}>
-								{actor.description}
+								{crew.description}
 							</ThemedText>
 						</Card.Content>
 					</Card>

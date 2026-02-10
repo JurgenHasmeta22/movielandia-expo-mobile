@@ -35,29 +35,28 @@ export default function RootLayout() {
 								headerShown: false,
 							}}
 						>
-							{isAuthenticated ? (
-								<Stack.Screen
-									name="(tabs)"
-									options={{ headerShown: false }}
-								/>
-							) : (
-								<Stack.Screen
-									name="(auth)"
-									options={{ headerShown: false }}
-								/>
-							)}
+							<Stack.Screen
+								name="(tabs)"
+								options={{ headerShown: false }}
+							/>
+							<Stack.Screen
+								name="(auth)"
+								options={{ headerShown: false }}
+							/>
 							<Stack.Screen
 								name="movies/[id]"
 								options={{
 									headerShown: true,
 									title: "Movie Details",
+									headerBackTitle: "Back",
 								}}
 							/>
 							<Stack.Screen
 								name="series/[id]"
 								options={{
 									headerShown: true,
-									title: "Series Details",
+									title: "Serie Details",
+									headerBackTitle: "Back",
 								}}
 							/>
 							<Stack.Screen
@@ -65,6 +64,15 @@ export default function RootLayout() {
 								options={{
 									headerShown: true,
 									title: "Actor Details",
+									headerBackTitle: "Back",
+								}}
+							/>
+							<Stack.Screen
+								name="crew/[id]"
+								options={{
+									headerShown: true,
+									title: "Crew Details",
+									headerBackTitle: "Back",
 								}}
 							/>
 						</Stack>

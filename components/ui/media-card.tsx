@@ -187,21 +187,21 @@ export function MediaCard({
 
 const styles = StyleSheet.create({
 	container: {
-		width: "48%",
+		width: "100%",
 		marginBottom: 12,
 	},
 	card: {
-		borderRadius: 8,
+		borderRadius: 12,
 		elevation: 4,
 	},
 	cardInner: {
 		overflow: "hidden",
-		borderRadius: 8,
+		borderRadius: 12,
 	},
 	imageContainer: {
 		position: "relative",
 		width: "100%",
-		height: 240,
+		height: 260,
 	},
 	image: {
 		width: "100%",
