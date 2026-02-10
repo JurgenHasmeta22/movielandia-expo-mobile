@@ -1,6 +1,8 @@
 import { authService } from "@/lib/api/auth.service";
+import { userService } from "@/lib/api/user.service";
 import { AuthTokens, User } from "@/types";
 import { secureStorage } from "@/utils/storage.utils";
+import { jwtDecode } from "jwt-decode";
 import { create } from "zustand";
 
 interface AuthState {
@@ -35,24 +37,33 @@ export const useAuthStore = create<AuthState>((set) => ({
 
 			await secureStorage.setItem("accessToken", response.accessToken);
 
-			const isEmail = emailOrUsername.includes("@");
-			const user: User = {
-				id: 0,
-				email: isEmail
-					? emailOrUsername
-					: `${emailOrUsername}@email.com`,
-				username: isEmail
-					? emailOrUsername.split("@")[0]
-					: emailOrUsername,
+			const decoded = jwtDecode<{ id: number; email: string }>(
+				response.accessToken,
+			);
+
+			let user: User = {
+				id: decoded.id,
+				email: decoded.email,
+				username: decoded.email.split("@")[0],
 				isActive: true,
 				createdAt: new Date().toISOString(),
 				updatedAt: new Date().toISOString(),
 			};
 
+			try {
+				const profile = await userService.getProfile(decoded.id);
+				user = {
+					...user,
+					username: (profile as any).userName || user.username,
+					avatar: (profile as any).avatar,
+					bio: (profile as any).bio,
+				};
+			} catch {}
+
 			await secureStorage.setItem("user", JSON.stringify(user));
 
 			set({
-				user: user,
+				user,
 				tokens: { accessToken: response.accessToken },
 				isAuthenticated: true,
 			});
@@ -102,7 +113,33 @@ export const useAuthStore = create<AuthState>((set) => ({
 			const userStr = await secureStorage.getItem("user");
 
 			if (token && userStr) {
-				const user = JSON.parse(userStr);
+				let user = JSON.parse(userStr);
+
+				if (!user.id || user.id === 0) {
+					try {
+						const decoded = jwtDecode<{
+							id: number;
+							email: string;
+						}>(token);
+						const profile = await userService.getProfile(
+							decoded.id,
+						);
+						user = {
+							...user,
+							id: decoded.id,
+							email: decoded.email,
+							username:
+								(profile as any).userName || user.username,
+							avatar: (profile as any).avatar,
+							bio: (profile as any).bio,
+						};
+						await secureStorage.setItem(
+							"user",
+							JSON.stringify(user),
+						);
+					} catch {}
+				}
+
 				set({
 					user,
 					tokens: { accessToken: token },

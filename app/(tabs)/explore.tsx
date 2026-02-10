@@ -1,15 +1,18 @@
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { Keyboard, ScrollView, StyleSheet, View } from "react-native";
 import {
-	ActivityIndicator,
-	Searchbar,
-	SegmentedButtons,
+    ActivityIndicator,
+    Searchbar,
+    SegmentedButtons,
 } from "react-native-paper";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { MediaCard } from "@/components/ui/media-card";
+import { Colors } from "@/constants/theme";
+import { useColorScheme } from "@/hooks/use-color-scheme";
 import { actorService } from "@/lib/api/actor.service";
 import { crewService } from "@/lib/api/crew.service";
 import { movieService } from "@/lib/api/movie.service";
@@ -17,30 +20,40 @@ import { serieService } from "@/lib/api/serie.service";
 
 export default function SearchScreen() {
 	const [searchQuery, setSearchQuery] = useState("");
+	const [submittedQuery, setSubmittedQuery] = useState("");
 	const [searchType, setSearchType] = useState("movies");
+	const colorScheme = useColorScheme();
+	const colors = Colors[colorScheme ?? "light"];
+
+	const handleSearch = () => {
+		if (searchQuery.trim().length > 0) {
+			Keyboard.dismiss();
+			setSubmittedQuery(searchQuery.trim());
+		}
+	};
 
 	const { data: movieResults, isLoading: moviesLoading } = useQuery({
-		queryKey: ["movies", "search", searchQuery],
-		queryFn: () => movieService.search(searchQuery),
-		enabled: searchType === "movies" && searchQuery.length > 2,
+		queryKey: ["movies", "search", submittedQuery],
+		queryFn: () => movieService.search(submittedQuery),
+		enabled: searchType === "movies" && submittedQuery.length > 0,
 	});
 
 	const { data: serieResults, isLoading: seriesLoading } = useQuery({
-		queryKey: ["series", "search", searchQuery],
-		queryFn: () => serieService.search(searchQuery),
-		enabled: searchType === "series" && searchQuery.length > 2,
+		queryKey: ["series", "search", submittedQuery],
+		queryFn: () => serieService.search(submittedQuery),
+		enabled: searchType === "series" && submittedQuery.length > 0,
 	});
 
 	const { data: actorResults, isLoading: actorsLoading } = useQuery({
-		queryKey: ["actors", "search", searchQuery],
-		queryFn: () => actorService.search(searchQuery),
-		enabled: searchType === "actors" && searchQuery.length > 2,
+		queryKey: ["actors", "search", submittedQuery],
+		queryFn: () => actorService.search(submittedQuery),
+		enabled: searchType === "actors" && submittedQuery.length > 0,
 	});
 
 	const { data: crewResults, isLoading: crewLoading } = useQuery({
-		queryKey: ["crew", "search", searchQuery],
-		queryFn: () => crewService.search(searchQuery),
-		enabled: searchType === "crew" && searchQuery.length > 2,
+		queryKey: ["crew", "search", submittedQuery],
+		queryFn: () => crewService.search(submittedQuery),
+		enabled: searchType === "crew" && submittedQuery.length > 0,
 	});
 
 	const isLoading =
@@ -50,16 +63,25 @@ export default function SearchScreen() {
 		<ThemedView style={styles.container}>
 			<View style={styles.header}>
 				<Searchbar
-					placeholder="Search movies, series, actors, crew..."
+					placeholder="Search by title, name..."
 					onChangeText={setSearchQuery}
+					onSubmitEditing={handleSearch}
 					value={searchQuery}
-					style={styles.searchbar}
-					iconColor="#e50914"
+					style={[styles.searchbar, { backgroundColor: colors.card }]}
+					inputStyle={{ color: colors.text }}
+					placeholderTextColor={colors.text + "80"}
+					icon="magnify"
+					iconColor={colors.text}
 				/>
 
 				<SegmentedButtons
 					value={searchType}
-					onValueChange={setSearchType}
+					onValueChange={(value) => {
+						setSearchType(value);
+						if (submittedQuery.length > 0) {
+							setSubmittedQuery(submittedQuery);
+						}
+					}}
 					buttons={[
 						{ value: "movies", label: "Movies" },
 						{ value: "series", label: "Series" },
@@ -72,14 +94,19 @@ export default function SearchScreen() {
 			</View>
 
 			<ScrollView contentContainerStyle={styles.content}>
-				{!searchQuery || searchQuery.length < 3 ? (
+				{!submittedQuery ? (
 					<ThemedView style={styles.emptyState}>
+						<MaterialCommunityIcons
+							name="magnify"
+							size={48}
+							color={colors.text + "40"}
+						/>
 						<ThemedText type="subtitle" style={styles.emptyTitle}>
-							🔍 Start searching...
+							Search MovieLandia
 						</ThemedText>
 						<ThemedText style={styles.emptyText}>
-							Enter at least 3 characters to find movies, series,
-							actors, or crew members
+							Find your favorite movies, series, actors, or crew
+							members
 						</ThemedText>
 					</ThemedView>
 				) : isLoading ? (

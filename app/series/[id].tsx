@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Stack, useLocalSearchParams } from "expo-router";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import {
 	Alert,
@@ -9,11 +9,10 @@ import {
 	TouchableOpacity,
 	View,
 } from "react-native";
-import { Card, Chip, Divider, IconButton, Snackbar } from "react-native-paper";
+import { Chip, Divider, IconButton, Snackbar } from "react-native-paper";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { Review } from "@/components/ui/review";
 import { ReviewDialog } from "@/components/ui/review-dialog";
 import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
@@ -22,10 +21,10 @@ import { serieService } from "@/lib/api/serie.service";
 import { userService } from "@/lib/api/user.service";
 import { useAuthStore } from "@/store/auth.store";
 import { formatDate } from "@/utils/format.utils";
-import { getImageUrl } from "@/utils/image.utils";
 
 export default function SerieDetailScreen() {
 	const { id } = useLocalSearchParams<{ id: string }>();
+	const router = useRouter();
 	const colorScheme = useColorScheme();
 	const colors = Colors[colorScheme ?? "light"];
 	const queryClient = useQueryClient();
@@ -209,14 +208,7 @@ export default function SerieDetailScreen() {
 		await reviewMutation.mutateAsync({ content, rating });
 	};
 
-	const userReview = (serie as any).reviews?.find(
-		(r: any) => r.user.id === user?.id,
-	);
-	const otherReviews = (serie as any).reviews?.filter(
-		(r: any) => r.user.id !== user?.id,
-	);
-
-	const seasons = seasonsData?.data || [];
+	const seasons: any[] = (seasonsData as any)?.seasons || [];
 
 	return (
 		<ThemedView style={styles.container}>
@@ -232,68 +224,33 @@ export default function SerieDetailScreen() {
 				{serie.photoSrcProd && (
 					<Image
 						source={{ uri: serie.photoSrcProd }}
-						style={styles.backdrop}
+						style={styles.poster}
 						resizeMode="cover"
 					/>
 				)}
 
-				<View
-					style={[
-						styles.content,
-						{ backgroundColor: colors.background },
-					]}
-				>
-					<View style={styles.header}>
-						{serie.photoSrc && (
-							<Image
-								source={{ uri: serie.photoSrc }}
-								style={styles.poster}
-								resizeMode="cover"
-							/>
+				<View style={styles.content}>
+					<ThemedText type="title" style={styles.title}>
+						{serie.title}
+					</ThemedText>
+
+					<View style={styles.metaContainer}>
+						{serie.dateAired && (
+							<Chip icon="calendar" style={styles.chip}>
+								{formatDate(serie.dateAired)}
+							</Chip>
 						)}
-						<View style={styles.headerInfo}>
-							<ThemedText style={styles.title}>
-								{serie.title}
-							</ThemedText>
-							<View style={styles.metaRow}>
-								{serie.dateAired && (
-									<ThemedText style={styles.metaText}>
-										{formatDate(serie.dateAired)}
-									</ThemedText>
-								)}
-							</View>
-							{serie.ratingImdb && (
-								<View style={styles.ratingContainer}>
-									<IconButton
-										icon="star"
-										size={20}
-										iconColor={colors.accent}
-										style={styles.starIcon}
-									/>
-									<ThemedText style={styles.ratingText}>
-										{serie.ratingImdb.toFixed(1)} / 10
-									</ThemedText>
-								</View>
-							)}
-							{serie.ratings &&
-								serie.ratings.averageRating > 0 && (
-									<View style={styles.userRating}>
-										<ThemedText
-											style={styles.userRatingText}
-										>
-											User Rating:{" "}
-											{serie.ratings.averageRating.toFixed(
-												1,
-											)}
-											/5
-										</ThemedText>
-										<ThemedText style={styles.reviewCount}>
-											({serie.ratings.totalReviews}{" "}
-											reviews)
-										</ThemedText>
-									</View>
-								)}
-						</View>
+						{serie.ratingImdb && (
+							<Chip icon="star" style={styles.chip}>
+								{serie.ratingImdb.toFixed(1)}
+							</Chip>
+						)}
+						{serie.ratings && serie.ratings.averageRating > 0 && (
+							<Chip icon="account-group" style={styles.chip}>
+								{serie.ratings.averageRating.toFixed(1)} (
+								{serie.ratings.totalReviews})
+							</Chip>
+						)}
 					</View>
 
 					<View style={styles.actions}>
@@ -334,91 +291,71 @@ export default function SerieDetailScreen() {
 						</View>
 					)}
 
-					<Card
-						style={[styles.card, { backgroundColor: colors.card }]}
-					>
-						<Card.Content>
-							<ThemedText style={styles.sectionTitle}>
-								Description
-							</ThemedText>
-							<ThemedText style={styles.overview}>
-								{serie.description ||
-									"No description available"}
-							</ThemedText>
-						</Card.Content>
-					</Card>
+					<ThemedText style={styles.description}>
+						{serie.description || "No description available"}
+					</ThemedText>
 
 					{seasons.length > 0 && (
 						<>
-							<Card
-								style={[
-									styles.card,
-									{ backgroundColor: colors.card },
-								]}
-							>
-								<Card.Content>
-									<ThemedText style={styles.sectionTitle}>
-										Seasons ({seasons.length})
-									</ThemedText>
-								</Card.Content>
-							</Card>
+							<Divider style={styles.divider} />
+
+							<View style={styles.sectionHeader}>
+								<ThemedText type="subtitle">
+									Seasons ({seasons.length})
+								</ThemedText>
+							</View>
 
 							{seasons.map((season) => (
 								<TouchableOpacity
 									key={season.id}
 									onPress={() => {
-										Alert.alert(
-											"Season Details",
-											`View details for ${season.title}`,
+										router.push(
+											`/seasons/${season.id}` as any,
 										);
 									}}
 								>
-									<Card
+									<View
 										style={[
 											styles.seasonCard,
 											{ backgroundColor: colors.card },
 										]}
 									>
-										<View style={styles.seasonContent}>
-											<Image
-												source={{
-													uri: getImageUrl(
-														season.photoSrc,
-													),
-												}}
-												style={styles.seasonPoster}
-												resizeMode="cover"
-											/>
-											<View style={styles.seasonInfo}>
-												<ThemedText type="defaultSemiBold">
-													{season.title}
-												</ThemedText>
+										<Image
+											source={{
+												uri:
+													season.photoSrcProd ||
+													season.photoSrc,
+											}}
+											style={styles.seasonPoster}
+											resizeMode="cover"
+										/>
+										<View style={styles.seasonInfo}>
+											<ThemedText type="defaultSemiBold">
+												{season.title}
+											</ThemedText>
+											<ThemedText
+												style={styles.seasonMeta}
+											>
+												⭐{" "}
+												{season.ratingImdb?.toFixed(
+													1,
+												) || "N/A"}
+											</ThemedText>
+											{season.dateAired && (
 												<ThemedText
 													style={styles.seasonMeta}
 												>
-													⭐{" "}
-													{season.ratingImdb?.toFixed(
-														1,
-													) || "N/A"}
+													{formatDate(
+														season.dateAired,
+													)}
 												</ThemedText>
-												{season.dateAired && (
-													<ThemedText
-														style={
-															styles.seasonMeta
-														}
-													>
-														{formatDate(
-															season.dateAired,
-														)}
-													</ThemedText>
-												)}
-											</View>
-											<IconButton
-												icon="chevron-right"
-												size={24}
-											/>
+											)}
 										</View>
-									</Card>
+										<IconButton
+											icon="chevron-right"
+											size={24}
+										/>
+									</View>
 								</TouchableOpacity>
 							))}
 						</>
@@ -429,7 +366,7 @@ export default function SerieDetailScreen() {
 						<ThemedText style={styles.reviewsHeader}>
 							Reviews
 						</ThemedText>
-						{!userReview && user && (
+						{!serie.isReviewed && user && (
 							<IconButton
 								icon="plus"
 								size={24}
@@ -440,41 +377,21 @@ export default function SerieDetailScreen() {
 						)}
 					</View>
 
-					{userReview && (
-						<>
-							<ThemedText style={styles.yourReview}>
-								Your Review
+					{serie.ratings && serie.ratings.totalReviews > 0 ? (
+						<ThemedText style={styles.noReviewsSubtext}>
+							{serie.ratings.totalReviews} review(s) • Average:{" "}
+							{serie.ratings.averageRating.toFixed(1)}/5
+						</ThemedText>
+					) : (
+						<View style={styles.noReviews}>
+							<ThemedText style={styles.noReviewsText}>
+								No reviews yet
 							</ThemedText>
-							<Review
-								review={userReview}
-								onEdit={() => handleEditReview(userReview)}
-								onDelete={handleDeleteReview}
-							/>
-						</>
-					)}
-
-					{otherReviews && otherReviews.length > 0 && (
-						<>
-							<ThemedText style={styles.otherReviews}>
-								Other Reviews
+							<ThemedText style={styles.noReviewsSubtext}>
+								Be the first to share your thoughts!
 							</ThemedText>
-							{otherReviews.map((review: any) => (
-								<Review key={review.id} review={review} />
-							))}
-						</>
+						</View>
 					)}
-
-					{!userReview &&
-						(!otherReviews || otherReviews.length === 0) && (
-							<View style={styles.noReviews}>
-								<ThemedText style={styles.noReviewsText}>
-									No reviews yet
-								</ThemedText>
-								<ThemedText style={styles.noReviewsSubtext}>
-									Be the first to share your thoughts!
-								</ThemedText>
-							</View>
-						)}
 				</View>
 			</ScrollView>
 
@@ -516,70 +433,23 @@ const styles = StyleSheet.create({
 		justifyContent: "center",
 		alignItems: "center",
 	},
-	backdrop: {
+	poster: {
 		width: "100%",
-		height: 240,
+		height: 300,
 	},
 	content: {
 		padding: 16,
 	},
-	header: {
+	title: {
+		marginBottom: 12,
+	},
+	metaContainer: {
 		flexDirection: "row",
-		gap: 16,
+		flexWrap: "wrap",
+		gap: 8,
 		marginBottom: 16,
 	},
-	poster: {
-		width: 120,
-		height: 180,
-		borderRadius: 8,
-	},
-	headerInfo: {
-		flex: 1,
-		justifyContent: "flex-start",
-	},
-	title: {
-		fontSize: 28,
-		fontWeight: "bold",
-		marginBottom: 8,
-		lineHeight: 34,
-	},
-	metaRow: {
-		flexDirection: "row",
-		alignItems: "center",
-		marginBottom: 8,
-		gap: 4,
-	},
-	metaText: {
-		fontSize: 14,
-		opacity: 0.8,
-	},
-	ratingContainer: {
-		flexDirection: "row",
-		alignItems: "center",
-		marginTop: 4,
-		marginLeft: -8,
-	},
-	starIcon: {
-		margin: 0,
-		padding: 0,
-	},
-	ratingText: {
-		fontSize: 16,
-		fontWeight: "600",
-		marginLeft: -4,
-	},
-	userRating: {
-		marginTop: 8,
-	},
-	userRatingText: {
-		fontSize: 14,
-		fontWeight: "600",
-	},
-	reviewCount: {
-		fontSize: 12,
-		opacity: 0.7,
-		marginTop: 2,
-	},
+	chip: {},
 	actions: {
 		flexDirection: "row",
 		gap: 12,
@@ -594,68 +464,26 @@ const styles = StyleSheet.create({
 		gap: 8,
 		marginBottom: 16,
 	},
-	genreChip: {
-		height: 32,
-	},
-	card: {
+	genreChip: {},
+	description: {
+		lineHeight: 20,
 		marginBottom: 16,
 	},
-	sectionTitle: {
-		fontSize: 18,
-		fontWeight: "600",
-		marginBottom: 8,
-	},
-	overview: {
-		lineHeight: 22,
-		opacity: 0.9,
-	},
 	divider: {
-		marginVertical: 24,
+		marginVertical: 16,
 	},
-	reviewsHeaderContainer: {
+	sectionHeader: {
 		flexDirection: "row",
 		justifyContent: "space-between",
 		alignItems: "center",
-		marginBottom: 16,
-	},
-	reviewsHeader: {
-		fontSize: 24,
-		fontWeight: "bold",
-	},
-	addReviewButton: {
-		margin: 0,
-	},
-	yourReview: {
-		fontSize: 16,
-		fontWeight: "600",
 		marginBottom: 12,
-	},
-	otherReviews: {
-		fontSize: 16,
-		fontWeight: "600",
-		marginTop: 8,
-		marginBottom: 12,
-	},
-	noReviews: {
-		padding: 32,
-		alignItems: "center",
-	},
-	noReviewsText: {
-		fontSize: 18,
-		fontWeight: "600",
-		marginBottom: 8,
-	},
-	noReviewsSubtext: {
-		fontSize: 14,
-		opacity: 0.7,
 	},
 	seasonCard: {
-		marginBottom: 12,
-	},
-	seasonContent: {
 		flexDirection: "row",
 		alignItems: "center",
 		padding: 12,
+		marginBottom: 12,
+		borderRadius: 8,
 	},
 	seasonPoster: {
 		width: 80,
@@ -670,5 +498,31 @@ const styles = StyleSheet.create({
 		fontSize: 12,
 		opacity: 0.7,
 		marginTop: 4,
+	},
+	reviewsHeaderContainer: {
+		flexDirection: "row",
+		justifyContent: "space-between",
+		alignItems: "center",
+		marginBottom: 16,
+	},
+	reviewsHeader: {
+		fontSize: 24,
+		fontWeight: "bold",
+	},
+	addReviewButton: {
+		margin: 0,
+	},
+	noReviews: {
+		padding: 32,
+		alignItems: "center",
+	},
+	noReviewsText: {
+		fontSize: 18,
+		fontWeight: "600",
+		marginBottom: 8,
+	},
+	noReviewsSubtext: {
+		fontSize: 14,
+		opacity: 0.7,
 	},
 });

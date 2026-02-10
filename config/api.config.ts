@@ -88,11 +88,5 @@ export const ENDPOINTS = {
 		ADD_REVIEW: "/users/reviews",
 		UPDATE_REVIEW: "/users/reviews/:itemId",
 		DELETE_REVIEW: "/users/reviews/:itemId",
-		ADD_SEASON_REVIEW: "/users/season-reviews",
-		UPDATE_SEASON_REVIEW: "/users/season-reviews/:seasonId",
-		DELETE_SEASON_REVIEW: "/users/season-reviews/:seasonId",
-		ADD_EPISODE_REVIEW: "/users/episode-reviews",
-		UPDATE_EPISODE_REVIEW: "/users/episode-reviews/:episodeId",
-		DELETE_EPISODE_REVIEW: "/users/episode-reviews/:episodeId",
 	},
 };

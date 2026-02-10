@@ -9,14 +9,17 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { Review } from "@/components/ui/review";
 import { ReviewDialog } from "@/components/ui/review-dialog";
+import { Colors } from "@/constants/theme";
+import { useColorScheme } from "@/hooks/use-color-scheme";
 
 import { episodeService } from "@/lib/api/episode.service";
 import { userService } from "@/lib/api/user.service";
 import { useAuthStore } from "@/store/auth.store";
-import { getImageUrl } from "@/utils/image.utils";
 
 export default function EpisodeDetailScreen() {
 	const { id } = useLocalSearchParams<{ id: string }>();
+	const colorScheme = useColorScheme();
+	const colors = Colors[colorScheme ?? "light"];
 	const queryClient = useQueryClient();
 	const user = useAuthStore((state) => state.user);
 	const [showReviewDialog, setShowReviewDialog] = useState(false);
@@ -149,27 +152,16 @@ export default function EpisodeDetailScreen() {
 			<Stack.Screen
 				options={{
 					title: episode.title,
-					headerRight: () => (
-						<IconButton
-							icon={
-								episode.isBookmarked
-									? "bookmark"
-									: "bookmark-outline"
-							}
-							onPress={() =>
-								bookmarkMutation.mutate(!!episode.isBookmarked)
-							}
-						/>
-					),
+					headerStyle: { backgroundColor: colors.background },
+					headerTintColor: colors.text,
+					headerBackTitle: "Back",
 				}}
 			/>
 			<ThemedView style={styles.container}>
 				<ScrollView>
 					<Image
 						source={{
-							uri: getImageUrl(
-								episode.photoSrcProd || episode.photoSrc,
-							),
+							uri: episode.photoSrcProd || episode.photoSrc,
 						}}
 						style={styles.poster}
 						resizeMode="cover"
@@ -201,6 +193,31 @@ export default function EpisodeDetailScreen() {
 									{episode.ratings.totalReviews})
 								</Chip>
 							)}
+						</View>
+
+						<View style={styles.actions}>
+							<IconButton
+								icon={
+									episode.isBookmarked
+										? "bookmark"
+										: "bookmark-outline"
+								}
+								size={28}
+								iconColor={
+									episode.isBookmarked
+										? colors.primary
+										: colors.text
+								}
+								onPress={() =>
+									bookmarkMutation.mutate(
+										!!episode.isBookmarked,
+									)
+								}
+								style={[
+									styles.actionButton,
+									{ backgroundColor: colors.card },
+								]}
+							/>
 						</View>
 
 						<ThemedText style={styles.description}>
@@ -293,8 +310,14 @@ const styles = StyleSheet.create({
 		gap: 8,
 		marginBottom: 16,
 	},
-	chip: {
-		height: 32,
+	chip: {},
+	actions: {
+		flexDirection: "row",
+		gap: 12,
+		marginBottom: 16,
+	},
+	actionButton: {
+		margin: 0,
 	},
 	description: {
 		lineHeight: 20,

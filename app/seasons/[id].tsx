@@ -1,14 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { Stack, useLocalSearchParams } from "expo-router";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import {
-    Alert,
-    Image,
-    ScrollView,
-    StyleSheet,
-    TouchableOpacity,
-    View,
+	Alert,
+	Image,
+	ScrollView,
+	StyleSheet,
+	TouchableOpacity,
+	View,
 } from "react-native";
 import { Chip, Divider, IconButton, List, Snackbar } from "react-native-paper";
 
@@ -22,10 +22,10 @@ import { episodeService } from "@/lib/api/episode.service";
 import { seasonService } from "@/lib/api/season.service";
 import { userService } from "@/lib/api/user.service";
 import { useAuthStore } from "@/store/auth.store";
-import { getImageUrl } from "@/utils/image.utils";
 
 export default function SeasonDetailScreen() {
 	const { id } = useLocalSearchParams<{ id: string }>();
+	const router = useRouter();
 	const colorScheme = useColorScheme();
 	const colors = Colors[colorScheme ?? "light"];
 	const queryClient = useQueryClient();
@@ -161,34 +161,23 @@ export default function SeasonDetailScreen() {
 		);
 	}
 
-	const episodes = episodesData?.data || [];
+	const episodes: any[] = (episodesData as any)?.episodes || [];
 
 	return (
 		<>
 			<Stack.Screen
 				options={{
 					title: season.title,
-					headerRight: () => (
-						<IconButton
-							icon={
-								season.isBookmarked
-									? "bookmark"
-									: "bookmark-outline"
-							}
-							onPress={() =>
-								bookmarkMutation.mutate(!!season.isBookmarked)
-							}
-						/>
-					),
+					headerStyle: { backgroundColor: colors.background },
+					headerTintColor: colors.text,
+					headerBackTitle: "Back",
 				}}
 			/>
 			<ThemedView style={styles.container}>
 				<ScrollView>
 					<Image
 						source={{
-							uri: getImageUrl(
-								season.photoSrcProd || season.photoSrc,
-							),
+							uri: season.photoSrcProd || season.photoSrc,
 						}}
 						style={styles.poster}
 						resizeMode="cover"
@@ -219,6 +208,31 @@ export default function SeasonDetailScreen() {
 							)}
 						</View>
 
+						<View style={styles.actions}>
+							<IconButton
+								icon={
+									season.isBookmarked
+										? "bookmark"
+										: "bookmark-outline"
+								}
+								size={28}
+								iconColor={
+									season.isBookmarked
+										? colors.primary
+										: colors.text
+								}
+								onPress={() =>
+									bookmarkMutation.mutate(
+										!!season.isBookmarked,
+									)
+								}
+								style={[
+									styles.actionButton,
+									{ backgroundColor: colors.card },
+								]}
+							/>
+						</View>
+
 						<ThemedText style={styles.description}>
 							{season.description}
 						</ThemedText>
@@ -235,21 +249,20 @@ export default function SeasonDetailScreen() {
 							<TouchableOpacity
 								key={episode.id}
 								onPress={() => {
-									Alert.alert(
-										"Episode Details",
-										`View details for ${episode.title}`,
+									router.push(
+										`/seasons/episodes/${episode.id}` as any,
 									);
 								}}
 							>
 								<List.Item
 									title={episode.title}
 									description={`${episode.duration} min • ${episode.ratingImdb?.toFixed(1)} ⭐`}
-									left={(props) => (
+									left={() => (
 										<Image
 											source={{
-												uri: getImageUrl(
+												uri:
+													episode.photoSrcProd ||
 													episode.photoSrc,
-												),
 											}}
 											style={styles.episodeThumb}
 										/>
@@ -354,8 +367,14 @@ const styles = StyleSheet.create({
 		gap: 8,
 		marginBottom: 16,
 	},
-	chip: {
-		height: 32,
+	chip: {},
+	actions: {
+		flexDirection: "row",
+		gap: 12,
+		marginBottom: 16,
+	},
+	actionButton: {
+		margin: 0,
 	},
 	description: {
 		lineHeight: 20,

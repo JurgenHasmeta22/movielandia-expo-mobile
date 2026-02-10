@@ -48,6 +48,20 @@ export default function RootLayout() {
 								title: "Crew Details",
 							}}
 						/>
+						<Stack.Screen
+							name="seasons/[id]"
+							options={{
+								headerShown: true,
+								title: "Season Details",
+							}}
+						/>
+						<Stack.Screen
+							name="seasons/episodes/[id]"
+							options={{
+								headerShown: true,
+								title: "Episode Details",
+							}}
+						/>
 					</Stack>
 					<StatusBar style="auto" />
 				</AuthProvider>

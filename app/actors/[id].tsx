@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { Alert, Image, ScrollView, StyleSheet, View } from "react-native";
-import { Card, Divider, IconButton, Snackbar } from "react-native-paper";
+import { Chip, Divider, IconButton, Snackbar } from "react-native-paper";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
@@ -41,24 +41,14 @@ export default function ActorDetailScreen() {
 			if (!user) {
 				throw new Error("Please sign in to write a review");
 			}
-			console.log("Submitting review for actor:", {
-				actorId: Number(id),
-				itemType: "actor",
-				content,
-				rating,
-				isEdit: !!editingReview,
-			});
 			if (editingReview) {
-				await userService.updateReview(Number(id), {
-					itemType: "actor",
+				await userService.updateReview(Number(id), "actor", {
 					content,
 					rating,
 				});
 				return "updated";
 			} else {
-				await userService.addReview({
-					itemId: Number(id),
-					itemType: "actor",
+				await userService.addReview(Number(id), "actor", {
 					content,
 					rating,
 				});
@@ -76,12 +66,6 @@ export default function ActorDetailScreen() {
 			setSnackbarVisible(true);
 		},
 		onError: (error: any) => {
-			console.error("Error submitting review:", error);
-			console.error("Error details:", {
-				message: error.message,
-				response: error.response?.data,
-				status: error.response?.status,
-			});
 			const errorMessage = error.message || "Failed to submit review";
 			Alert.alert("Error", errorMessage);
 		},
@@ -152,50 +136,38 @@ export default function ActorDetailScreen() {
 					{ backgroundColor: colors.background },
 				]}
 			>
-				<View style={styles.header}>
-					{actor.photoSrcProd && (
+				{actor.photoSrcProd && (
+					<View style={styles.profileContainer}>
 						<Image
 							source={{ uri: actor.photoSrcProd }}
 							style={styles.profile}
 							resizeMode="cover"
 						/>
-					)}
-					<View style={styles.headerInfo}>
-						<ThemedText style={styles.title}>
-							{actor.fullname}
-						</ThemedText>
-						{actor.debut && (
-							<ThemedText style={styles.debut}>
-								Debut: {actor.debut}
-							</ThemedText>
-						)}
-						{actor.ratings && actor.ratings.averageRating > 0 && (
-							<View style={styles.userRating}>
-								<ThemedText style={styles.userRatingText}>
-									Rating:{" "}
-									{actor.ratings.averageRating.toFixed(1)}/5
-								</ThemedText>
-								<ThemedText style={styles.reviewCount}>
-									({actor.ratings.totalReviews} reviews)
-								</ThemedText>
-							</View>
-						)}
 					</View>
+				)}
+
+				<ThemedText type="title" style={styles.title}>
+					{actor.fullname}
+				</ThemedText>
+
+				<View style={styles.metaContainer}>
+					{actor.debut && (
+						<Chip icon="calendar" style={styles.chip}>
+							{actor.debut}
+						</Chip>
+					)}
+					{actor.ratings && actor.ratings.averageRating > 0 && (
+						<Chip icon="account-group" style={styles.chip}>
+							{actor.ratings.averageRating.toFixed(1)} (
+							{actor.ratings.totalReviews})
+						</Chip>
+					)}
 				</View>
 
 				{actor.description && (
-					<Card
-						style={[styles.card, { backgroundColor: colors.card }]}
-					>
-						<Card.Content>
-							<ThemedText style={styles.sectionTitle}>
-								Biography
-							</ThemedText>
-							<ThemedText style={styles.biography}>
-								{actor.description}
-							</ThemedText>
-						</Card.Content>
-					</Card>
+					<ThemedText style={styles.description}>
+						{actor.description}
+					</ThemedText>
 				)}
 
 				<Divider style={styles.divider} />
@@ -263,58 +235,33 @@ const styles = StyleSheet.create({
 	content: {
 		padding: 16,
 	},
-	header: {
-		flexDirection: "row",
-		gap: 16,
-		marginBottom: 16,
+	profileContainer: {
 		alignItems: "center",
+		marginBottom: 16,
 	},
 	profile: {
-		width: 120,
-		height: 120,
-		borderRadius: 60,
-	},
-	headerInfo: {
-		flex: 1,
+		width: 150,
+		height: 150,
+		borderRadius: 75,
 	},
 	title: {
-		fontSize: 28,
-		fontWeight: "bold",
-		marginBottom: 4,
-		lineHeight: 34,
+		textAlign: "center",
+		marginBottom: 12,
 	},
-	debut: {
-		fontSize: 16,
-		opacity: 0.7,
-		marginTop: 4,
-	},
-
-	card: {
+	metaContainer: {
+		flexDirection: "row",
+		flexWrap: "wrap",
+		justifyContent: "center",
+		gap: 8,
 		marginBottom: 16,
 	},
-	sectionTitle: {
-		fontSize: 18,
-		fontWeight: "600",
-		marginBottom: 8,
-	},
-	biography: {
-		lineHeight: 22,
-		opacity: 0.9,
-	},
-	userRating: {
-		marginTop: 8,
-	},
-	userRatingText: {
-		fontSize: 14,
-		fontWeight: "600",
-	},
-	reviewCount: {
-		fontSize: 12,
-		opacity: 0.7,
-		marginTop: 2,
+	chip: {},
+	description: {
+		lineHeight: 20,
+		marginBottom: 16,
 	},
 	divider: {
-		marginVertical: 24,
+		marginVertical: 16,
 	},
 	reviewsHeaderContainer: {
 		flexDirection: "row",

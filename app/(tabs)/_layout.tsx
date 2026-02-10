@@ -20,9 +20,9 @@ export default function TabLayout() {
 				},
 				headerTintColor: Colors[colorScheme ?? "light"].text,
 				tabBarStyle: {
-					paddingBottom: 3,
-					paddingTop: 3,
-					height: 55,
+					paddingBottom: 8,
+					paddingTop: 4,
+					height: 60,
 					backgroundColor: Colors[colorScheme ?? "light"].background,
 					borderTopColor: Colors[colorScheme ?? "light"].border,
 				},
