@@ -21,6 +21,8 @@ export const Colors = {
 		accent: "#f5c518",
 		card: "#ffffff",
 		border: "#e5e5e5",
+		error: "#f44336",
+		success: "#4caf50",
 	},
 	dark: {
 		text: "#ECEDEE",
@@ -34,6 +36,8 @@ export const Colors = {
 		accent: "#f5c518",
 		card: "#1a1a1a",
 		border: "#2a2a2a",
+		error: "#f44336",
+		success: "#4caf50",
 	},
 };
 

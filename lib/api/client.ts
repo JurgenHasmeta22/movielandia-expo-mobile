@@ -53,11 +53,19 @@ class ApiClient {
 		config?: AxiosRequestConfig,
 	): Promise<T> {
 		try {
+			console.log("API POST request:", { url, data });
 			const response = await this.client.post<T>(url, data, config);
+			console.log("API POST response:", response.data);
 			return response.data;
 		} catch (error) {
 			if (error instanceof AxiosError) {
 				const message = error.response?.data?.message || error.message;
+				console.error("API POST error:", {
+					url,
+					data,
+					status: error.response?.status,
+					message: error.response?.data,
+				});
 				throw new Error(
 					Array.isArray(message) ? message.join(", ") : message,
 				);

@@ -1,15 +1,18 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useLocalSearchParams } from "expo-router";
+import { Stack, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { Alert, Image, ScrollView, StyleSheet, View } from "react-native";
-import { Card, Chip, IconButton } from "react-native-paper";
+import { Card, Chip, Divider, IconButton, Snackbar } from "react-native-paper";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
+import { Review } from "@/components/ui/review";
+import { ReviewDialog } from "@/components/ui/review-dialog";
 import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { movieService } from "@/lib/api/movie.service";
 import { userService } from "@/lib/api/user.service";
+import { useAuthStore } from "@/store/auth.store";
 import { formatDate, formatRuntime } from "@/utils/format.utils";
 
 export default function MovieDetailScreen() {
@@ -17,7 +20,11 @@ export default function MovieDetailScreen() {
 	const colorScheme = useColorScheme();
 	const colors = Colors[colorScheme ?? "light"];
 	const queryClient = useQueryClient();
+	const user = useAuthStore((state) => state.user);
 	const [showReviewDialog, setShowReviewDialog] = useState(false);
+	const [editingReview, setEditingReview] = useState<any>(null);
+	const [snackbarVisible, setSnackbarVisible] = useState(false);
+	const [snackbarMessage, setSnackbarMessage] = useState("");
 
 	const { data: movie, isLoading } = useQuery({
 		queryKey: ["movie", id],
@@ -27,23 +34,101 @@ export default function MovieDetailScreen() {
 
 	const bookmarkMutation = useMutation({
 		mutationFn: async (isBookmarked: boolean) => {
-			if (isBookmarked) {
-				await userService.removeFavorite(1, Number(id));
-			} else {
-				await userService.addFavorite(1, Number(id), "movie");
+			if (!user) {
+				throw new Error("Please sign in to bookmark");
 			}
+			if (isBookmarked) {
+				await userService.removeFavorite(Number(id), "movies");
+				return "removed";
+			} else {
+				await userService.addFavorite(Number(id), "movies");
+				return "added";
+			}
+		},
+		onSuccess: (action) => {
+			queryClient.invalidateQueries({ queryKey: ["movie", id] });
+			const message =
+				action === "added"
+					? "Bookmark added successfully"
+					: "Bookmark removed successfully";
+			setSnackbarMessage(message);
+			setSnackbarVisible(true);
+		},
+		onError: (error: any) => {
+			Alert.alert("Error", error.message || "Failed to update bookmark");
+		},
+	});
+
+	const reviewMutation = useMutation({
+		mutationFn: async ({
+			content,
+			rating,
+		}: {
+			content: string;
+			rating: number;
+		}) => {
+			if (!user) {
+				throw new Error("Please sign in to write a review");
+			}
+			if (editingReview) {
+				await userService.updateReview(Number(id), {
+					itemType: "movie",
+					content,
+					rating,
+				});
+				return "updated";
+			} else {
+				await userService.addReview({
+					itemId: Number(id),
+					itemType: "movie",
+					content,
+					rating,
+				});
+				return "added";
+			}
+		},
+		onSuccess: (action) => {
+			queryClient.invalidateQueries({ queryKey: ["movie", id] });
+			setEditingReview(null);
+			const message =
+				action === "updated"
+					? "Review updated successfully"
+					: "Review added successfully";
+
+			setSnackbarMessage(message);
+			setSnackbarVisible(true);
+		},
+		onError: (error: any) => {
+			Alert.alert("Error", error.message || "Failed to submit review");
+		},
+	});
+
+	const deleteReviewMutation = useMutation({
+		mutationFn: async () => {
+			if (!user) {
+				throw new Error("Please sign in");
+			}
+			await userService.removeReview(Number(id), "movie");
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["movie", id] });
 		},
-		onError: (error) => {
-			Alert.alert("Error", "Failed to update bookmark");
+		onError: (error: any) => {
+			Alert.alert("Error", error.message || "Failed to delete review");
 		},
 	});
 
 	if (isLoading) {
 		return (
 			<ThemedView style={styles.container}>
+				<Stack.Screen
+					options={{
+						title: "Loading...",
+						headerStyle: { backgroundColor: colors.background },
+						headerTintColor: colors.text,
+						headerBackTitle: "Back",
+					}}
+				/>
 				<View style={styles.loadingContainer}>
 					<ThemedText>Loading...</ThemedText>
 				</View>
@@ -54,6 +139,14 @@ export default function MovieDetailScreen() {
 	if (!movie) {
 		return (
 			<ThemedView style={styles.container}>
+				<Stack.Screen
+					options={{
+						title: "Not Found",
+						headerStyle: { backgroundColor: colors.background },
+						headerTintColor: colors.text,
+						headerBackTitle: "Back",
+					}}
+				/>
 				<View style={styles.loadingContainer}>
 					<ThemedText>Movie not found</ThemedText>
 				</View>
@@ -62,20 +155,66 @@ export default function MovieDetailScreen() {
 	}
 
 	const handleBookmark = () => {
+		if (!user) {
+			Alert.alert(
+				"Sign In Required",
+				"Please sign in to bookmark movies",
+			);
+			return;
+		}
 		bookmarkMutation.mutate(!!movie.isBookmarked);
 	};
 
 	const handleWriteReview = () => {
-		Alert.alert("Write Review", "Review functionality coming soon!", [
-			{
-				text: "OK",
-				onPress: () => console.log("Review dialog"),
-			},
-		]);
+		if (!user) {
+			Alert.alert("Sign In Required", "Please sign in to write a review");
+			return;
+		}
+		setEditingReview(null);
+		setShowReviewDialog(true);
 	};
+
+	const handleEditReview = (review: any) => {
+		setEditingReview(review);
+		setShowReviewDialog(true);
+	};
+
+	const handleDeleteReview = () => {
+		Alert.alert(
+			"Delete Review",
+			"Are you sure you want to delete this review?",
+			[
+				{ text: "Cancel", style: "cancel" },
+				{
+					text: "Delete",
+					style: "destructive",
+					onPress: () => deleteReviewMutation.mutate(),
+				},
+			],
+		);
+	};
+
+	const handleSubmitReview = async (content: string, rating: number) => {
+		await reviewMutation.mutateAsync({ content, rating });
+	};
+
+	const userReview = (movie as any).reviews?.find(
+		(r: any) => r.user.id === user?.id,
+	);
+	const otherReviews = (movie as any).reviews?.filter(
+		(r: any) => r.user.id !== user?.id,
+	);
 
 	return (
 		<ThemedView style={styles.container}>
+			<Stack.Screen
+				options={{
+					title: movie.title,
+					headerStyle: { backgroundColor: colors.background },
+					headerTintColor: colors.text,
+					headerBackTitle: "Back",
+				}}
+			/>
 			<ScrollView>
 				{movie.photoSrcProd && (
 					<Image
@@ -168,16 +307,6 @@ export default function MovieDetailScreen() {
 								{ backgroundColor: colors.card },
 							]}
 						/>
-						<IconButton
-							icon="pencil"
-							size={28}
-							iconColor={colors.text}
-							onPress={handleWriteReview}
-							style={[
-								styles.actionButton,
-								{ backgroundColor: colors.card },
-							]}
-						/>
 					</View>
 
 					{movie.genres && movie.genres.length > 0 && (
@@ -210,8 +339,118 @@ export default function MovieDetailScreen() {
 							</ThemedText>
 						</Card.Content>
 					</Card>
+
+					{(movie as any).reviews &&
+						(movie as any).reviews.length > 0 && (
+							<>
+								<Divider style={styles.divider} />
+								<View style={styles.reviewsHeaderContainer}>
+									<ThemedText style={styles.reviewsHeader}>
+										User Reviews (
+										{(movie as any).reviews.length})
+									</ThemedText>
+									{!userReview && user && (
+										<IconButton
+											icon="plus"
+											size={24}
+											iconColor={colors.primary}
+											onPress={handleWriteReview}
+											style={styles.addReviewButton}
+										/>
+									)}
+								</View>
+
+								{userReview && (
+									<>
+										<ThemedText style={styles.yourReview}>
+											Your Review
+										</ThemedText>
+										<Review
+											review={userReview}
+											onEdit={() =>
+												handleEditReview(userReview)
+											}
+											onDelete={handleDeleteReview}
+										/>
+									</>
+								)}
+
+								{otherReviews && otherReviews.length > 0 && (
+									<>
+										{userReview && (
+											<ThemedText
+												style={styles.otherReviews}
+											>
+												Other Reviews
+											</ThemedText>
+										)}
+										{otherReviews.map((review: any) => (
+											<Review
+												key={review.id}
+												review={review}
+											/>
+										))}
+									</>
+								)}
+							</>
+						)}
+
+					{(movie as any).reviews &&
+						(movie as any).reviews.length === 0 && (
+							<>
+								<Divider style={styles.divider} />
+								<View style={styles.reviewsHeaderContainer}>
+									<ThemedText style={styles.reviewsHeader}>
+										Reviews
+									</ThemedText>
+									{user && (
+										<IconButton
+											icon="plus"
+											size={24}
+											iconColor={colors.primary}
+											onPress={handleWriteReview}
+											style={styles.addReviewButton}
+										/>
+									)}
+								</View>
+								<View style={styles.noReviews}>
+									<ThemedText style={styles.noReviewsText}>
+										No reviews yet
+									</ThemedText>
+									<ThemedText style={styles.noReviewsSubtext}>
+										Be the first to share your thoughts!
+									</ThemedText>
+								</View>
+							</>
+						)}
 				</View>
 			</ScrollView>
+
+			<ReviewDialog
+				visible={showReviewDialog}
+				onDismiss={() => {
+					setShowReviewDialog(false);
+					setEditingReview(null);
+				}}
+				onSubmit={handleSubmitReview}
+				initialContent={editingReview?.content || ""}
+				initialRating={editingReview?.rating || 5}
+				isEdit={!!editingReview}
+			/>
+			<Snackbar
+				visible={snackbarVisible}
+				onDismiss={() => setSnackbarVisible(false)}
+				duration={3000}
+				style={{
+					position: "absolute",
+					top: 0,
+					right: 0,
+					margin: 16,
+					zIndex: 9999,
+				}}
+			>
+				{snackbarMessage}
+			</Snackbar>
 		</ThemedView>
 	);
 }
@@ -317,5 +556,45 @@ const styles = StyleSheet.create({
 	overview: {
 		lineHeight: 22,
 		opacity: 0.9,
+	},
+	divider: {
+		marginVertical: 24,
+	},
+	reviewsHeaderContainer: {
+		flexDirection: "row",
+		justifyContent: "space-between",
+		alignItems: "center",
+		marginBottom: 16,
+	},
+	reviewsHeader: {
+		fontSize: 24,
+		fontWeight: "bold",
+	},
+	addReviewButton: {
+		margin: 0,
+	},
+	yourReview: {
+		fontSize: 16,
+		fontWeight: "600",
+		marginBottom: 12,
+	},
+	otherReviews: {
+		fontSize: 16,
+		fontWeight: "600",
+		marginTop: 8,
+		marginBottom: 12,
+	},
+	noReviews: {
+		padding: 32,
+		alignItems: "center",
+	},
+	noReviewsText: {
+		fontSize: 18,
+		fontWeight: "600",
+		marginBottom: 8,
+	},
+	noReviewsSubtext: {
+		fontSize: 14,
+		opacity: 0.7,
 	},
 });

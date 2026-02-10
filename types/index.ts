@@ -46,6 +46,7 @@ export interface Movie {
 	genres?: Genre[];
 	isBookmarked?: boolean;
 	isReviewed?: boolean;
+	reviews?: Review[];
 }
 
 export interface SerieRatingInfo {
@@ -66,6 +67,7 @@ export interface Serie {
 	genres?: Genre[];
 	isBookmarked?: boolean;
 	isReviewed?: boolean;
+	reviews?: Review[];
 }
 
 export interface Season {
@@ -107,6 +109,7 @@ export interface Actor {
 	ratings?: ActorRatingInfo;
 	isBookmarked?: boolean;
 	isReviewed?: boolean;
+	reviews?: Review[];
 }
 
 export interface CrewRatingInfo {
@@ -123,6 +126,7 @@ export interface Crew {
 	debut?: string;
 	ratings?: CrewRatingInfo;
 	isBookmarked?: boolean;
+	reviews?: Review[];
 	isReviewed?: boolean;
 }
 
@@ -137,12 +141,24 @@ export interface Review {
 	userId: number;
 	movieId?: number;
 	serieId?: number;
+	actorId?: number;
+	crewId?: number;
 	rating: number;
 	title?: string;
 	content: string;
 	createdAt: string;
 	updatedAt: string;
-	user?: User;
+	user: {
+		id: number;
+		userName: string;
+		avatar?: string;
+	};
+	isUpvoted?: boolean;
+	isDownvoted?: boolean;
+	_count?: {
+		upvotes: number;
+		downvotes: number;
+	};
 }
 
 export interface List {

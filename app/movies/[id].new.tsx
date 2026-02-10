@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { Alert, Image, ScrollView, StyleSheet, View } from "react-native";
-import { Card, Chip, Divider, IconButton, Snackbar } from "react-native-paper";
+import { Card, Chip, Divider, IconButton } from "react-native-paper";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
@@ -10,12 +10,12 @@ import { Review } from "@/components/ui/review";
 import { ReviewDialog } from "@/components/ui/review-dialog";
 import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
-import { serieService } from "@/lib/api/serie.service";
+import { movieService } from "@/lib/api/movie.service";
 import { userService } from "@/lib/api/user.service";
 import { useAuthStore } from "@/store/auth.store";
-import { formatDate } from "@/utils/format.utils";
+import { formatDate, formatRuntime } from "@/utils/format.utils";
 
-export default function SerieDetailScreen() {
+export default function MovieDetailScreen() {
 	const { id } = useLocalSearchParams<{ id: string }>();
 	const colorScheme = useColorScheme();
 	const colors = Colors[colorScheme ?? "light"];
@@ -23,12 +23,10 @@ export default function SerieDetailScreen() {
 	const user = useAuthStore((state) => state.user);
 	const [showReviewDialog, setShowReviewDialog] = useState(false);
 	const [editingReview, setEditingReview] = useState<any>(null);
-	const [snackbarVisible, setSnackbarVisible] = useState(false);
-	const [snackbarMessage, setSnackbarMessage] = useState("");
 
-	const { data: serie, isLoading } = useQuery({
-		queryKey: ["serie", id],
-		queryFn: () => serieService.getOne(Number(id)),
+	const { data: movie, isLoading } = useQuery({
+		queryKey: ["movie", id],
+		queryFn: () => movieService.getOne(Number(id)),
 		enabled: !!id,
 	});
 
@@ -38,21 +36,13 @@ export default function SerieDetailScreen() {
 				throw new Error("Please sign in to bookmark");
 			}
 			if (isBookmarked) {
-				await userService.removeFavorite(Number(id), "series");
-				return "removed";
+				await userService.removeFavorite(user.id, Number(id));
 			} else {
-				await userService.addFavorite(Number(id), "series");
-				return "added";
+				await userService.addFavorite(user.id, Number(id), "movie");
 			}
 		},
-		onSuccess: (action) => {
-			queryClient.invalidateQueries({ queryKey: ["serie", id] });
-			const message =
-				action === "added"
-					? "Bookmark added successfully"
-					: "Bookmark removed successfully";
-			setSnackbarMessage(message);
-			setSnackbarVisible(true);
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["movie", id] });
 		},
 		onError: (error: any) => {
 			Alert.alert("Error", error.message || "Failed to update bookmark");
@@ -72,30 +62,22 @@ export default function SerieDetailScreen() {
 			}
 			if (editingReview) {
 				await userService.updateReview(Number(id), {
-					itemType: "serie",
+					itemType: "movie",
 					content,
 					rating,
 				});
-				return "updated";
 			} else {
 				await userService.addReview({
 					itemId: Number(id),
-					itemType: "serie",
+					itemType: "movie",
 					content,
 					rating,
 				});
-				return "added";
 			}
 		},
-		onSuccess: (action) => {
-			queryClient.invalidateQueries({ queryKey: ["serie", id] });
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["movie", id] });
 			setEditingReview(null);
-			const message =
-				action === "updated"
-					? "Review updated successfully"
-					: "Review added successfully";
-			setSnackbarMessage(message);
-			setSnackbarVisible(true);
 		},
 		onError: (error: any) => {
 			Alert.alert("Error", error.message || "Failed to submit review");
@@ -107,10 +89,10 @@ export default function SerieDetailScreen() {
 			if (!user) {
 				throw new Error("Please sign in");
 			}
-			await userService.removeReview(Number(id), "serie");
+			await userService.removeReview(Number(id), "movie");
 		},
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["serie", id] });
+			queryClient.invalidateQueries({ queryKey: ["movie", id] });
 		},
 		onError: (error: any) => {
 			Alert.alert("Error", error.message || "Failed to delete review");
@@ -135,7 +117,7 @@ export default function SerieDetailScreen() {
 		);
 	}
 
-	if (!serie) {
+	if (!movie) {
 		return (
 			<ThemedView style={styles.container}>
 				<Stack.Screen
@@ -147,7 +129,7 @@ export default function SerieDetailScreen() {
 					}}
 				/>
 				<View style={styles.loadingContainer}>
-					<ThemedText>Series not found</ThemedText>
+					<ThemedText>Movie not found</ThemedText>
 				</View>
 			</ThemedView>
 		);
@@ -157,11 +139,11 @@ export default function SerieDetailScreen() {
 		if (!user) {
 			Alert.alert(
 				"Sign In Required",
-				"Please sign in to bookmark series",
+				"Please sign in to bookmark movies",
 			);
 			return;
 		}
-		bookmarkMutation.mutate(!!serie.isBookmarked);
+		bookmarkMutation.mutate(!!movie.isBookmarked);
 	};
 
 	const handleWriteReview = () => {
@@ -197,10 +179,8 @@ export default function SerieDetailScreen() {
 		await reviewMutation.mutateAsync({ content, rating });
 	};
 
-	const userReview = (serie as any).reviews?.find(
-		(r: any) => r.user.id === user?.id,
-	);
-	const otherReviews = (serie as any).reviews?.filter(
+	const userReview = movie.reviews?.find((r: any) => r.user.id === user?.id);
+	const otherReviews = movie.reviews?.filter(
 		(r: any) => r.user.id !== user?.id,
 	);
 
@@ -208,16 +188,16 @@ export default function SerieDetailScreen() {
 		<ThemedView style={styles.container}>
 			<Stack.Screen
 				options={{
-					title: serie.title,
+					title: movie.title,
 					headerStyle: { backgroundColor: colors.background },
 					headerTintColor: colors.text,
 					headerBackTitle: "Back",
 				}}
 			/>
 			<ScrollView>
-				{serie.photoSrcProd && (
+				{movie.photoSrcProd && (
 					<Image
-						source={{ uri: serie.photoSrcProd }}
+						source={{ uri: movie.photoSrcProd }}
 						style={styles.backdrop}
 						resizeMode="cover"
 					/>
@@ -230,25 +210,30 @@ export default function SerieDetailScreen() {
 					]}
 				>
 					<View style={styles.header}>
-						{serie.photoSrc && (
+						{movie.photoSrc && (
 							<Image
-								source={{ uri: serie.photoSrc }}
+								source={{ uri: movie.photoSrc }}
 								style={styles.poster}
 								resizeMode="cover"
 							/>
 						)}
 						<View style={styles.headerInfo}>
 							<ThemedText style={styles.title}>
-								{serie.title}
+								{movie.title}
 							</ThemedText>
 							<View style={styles.metaRow}>
-								{serie.dateAired && (
+								{movie.dateAired && (
 									<ThemedText style={styles.metaText}>
-										{formatDate(serie.dateAired)}
+										{formatDate(movie.dateAired)}
+									</ThemedText>
+								)}
+								{movie.duration && (
+									<ThemedText style={styles.metaText}>
+										• {formatRuntime(movie.duration)}
 									</ThemedText>
 								)}
 							</View>
-							{serie.ratingImdb && (
+							{movie.ratingImdb && (
 								<View style={styles.ratingContainer}>
 									<IconButton
 										icon="star"
@@ -257,24 +242,24 @@ export default function SerieDetailScreen() {
 										style={styles.starIcon}
 									/>
 									<ThemedText style={styles.ratingText}>
-										{serie.ratingImdb.toFixed(1)} / 10
+										{movie.ratingImdb.toFixed(1)} / 10
 									</ThemedText>
 								</View>
 							)}
-							{serie.ratings &&
-								serie.ratings.averageRating > 0 && (
+							{movie.ratings &&
+								movie.ratings.averageRating > 0 && (
 									<View style={styles.userRating}>
 										<ThemedText
 											style={styles.userRatingText}
 										>
 											User Rating:{" "}
-											{serie.ratings.averageRating.toFixed(
+											{movie.ratings.averageRating.toFixed(
 												1,
 											)}
-											/5
+											/10
 										</ThemedText>
 										<ThemedText style={styles.reviewCount}>
-											({serie.ratings.totalReviews}{" "}
+											({movie.ratings.totalReviews}{" "}
 											reviews)
 										</ThemedText>
 									</View>
@@ -285,17 +270,28 @@ export default function SerieDetailScreen() {
 					<View style={styles.actions}>
 						<IconButton
 							icon={
-								serie.isBookmarked
+								movie.isBookmarked
 									? "bookmark"
 									: "bookmark-outline"
 							}
 							size={28}
 							iconColor={
-								serie.isBookmarked
+								movie.isBookmarked
 									? colors.primary
 									: colors.text
 							}
 							onPress={handleBookmark}
+							disabled={bookmarkMutation.isPending}
+							style={[
+								styles.actionButton,
+								{ backgroundColor: colors.card },
+							]}
+						/>
+						<IconButton
+							icon="pencil"
+							size={28}
+							iconColor={colors.text}
+							onPress={handleWriteReview}
 							style={[
 								styles.actionButton,
 								{ backgroundColor: colors.card },
@@ -303,9 +299,9 @@ export default function SerieDetailScreen() {
 						/>
 					</View>
 
-					{serie.genres && serie.genres.length > 0 && (
+					{movie.genres && movie.genres.length > 0 && (
 						<View style={styles.genres}>
-							{serie.genres.map((genre) => (
+							{movie.genres.map((genre) => (
 								<Chip
 									key={genre.id}
 									style={[
@@ -328,54 +324,55 @@ export default function SerieDetailScreen() {
 								Description
 							</ThemedText>
 							<ThemedText style={styles.overview}>
-								{serie.description ||
+								{movie.description ||
 									"No description available"}
 							</ThemedText>
 						</Card.Content>
 					</Card>
 
-					<Divider style={styles.divider} />
-					<View style={styles.reviewsHeaderContainer}>
-						<ThemedText style={styles.reviewsHeader}>
-							Reviews
-						</ThemedText>
-						{!userReview && user && (
-							<IconButton
-								icon="plus"
-								size={24}
-								iconColor={colors.primary}
-								onPress={handleWriteReview}
-								style={styles.addReviewButton}
-							/>
-						)}
-					</View>
-
-					{userReview && (
+					{movie.reviews && movie.reviews.length > 0 && (
 						<>
-							<ThemedText style={styles.yourReview}>
-								Your Review
+							<Divider style={styles.divider} />
+							<ThemedText style={styles.reviewsHeader}>
+								User Reviews ({movie.reviews.length})
 							</ThemedText>
-							<Review
-								review={userReview}
-								onEdit={() => handleEditReview(userReview)}
-								onDelete={handleDeleteReview}
-							/>
+
+							{userReview && (
+								<>
+									<ThemedText style={styles.yourReview}>
+										Your Review
+									</ThemedText>
+									<Review
+										review={userReview}
+										onEdit={() =>
+											handleEditReview(userReview)
+										}
+										onDelete={handleDeleteReview}
+									/>
+								</>
+							)}
+
+							{otherReviews && otherReviews.length > 0 && (
+								<>
+									{userReview && (
+										<ThemedText style={styles.otherReviews}>
+											Other Reviews
+										</ThemedText>
+									)}
+									{otherReviews.map((review: any) => (
+										<Review
+											key={review.id}
+											review={review}
+										/>
+									))}
+								</>
+							)}
 						</>
 					)}
 
-					{otherReviews && otherReviews.length > 0 && (
+					{movie.reviews && movie.reviews.length === 0 && (
 						<>
-							<ThemedText style={styles.otherReviews}>
-								Other Reviews
-							</ThemedText>
-							{otherReviews.map((review: any) => (
-								<Review key={review.id} review={review} />
-							))}
-						</>
-					)}
-
-					{!userReview &&
-						(!otherReviews || otherReviews.length === 0) && (
+							<Divider style={styles.divider} />
 							<View style={styles.noReviews}>
 								<ThemedText style={styles.noReviewsText}>
 									No reviews yet
@@ -384,7 +381,8 @@ export default function SerieDetailScreen() {
 									Be the first to share your thoughts!
 								</ThemedText>
 							</View>
-						)}
+						</>
+					)}
 				</View>
 			</ScrollView>
 
@@ -399,20 +397,6 @@ export default function SerieDetailScreen() {
 				initialRating={editingReview?.rating || 5}
 				isEdit={!!editingReview}
 			/>
-			<Snackbar
-				visible={snackbarVisible}
-				onDismiss={() => setSnackbarVisible(false)}
-				duration={3000}
-				style={{
-					position: "absolute",
-					top: 0,
-					right: 0,
-					margin: 16,
-					zIndex: 9999,
-				}}
-			>
-				{snackbarMessage}
-			</Snackbar>
 		</ThemedView>
 	);
 }
@@ -522,18 +506,10 @@ const styles = StyleSheet.create({
 	divider: {
 		marginVertical: 24,
 	},
-	reviewsHeaderContainer: {
-		flexDirection: "row",
-		justifyContent: "space-between",
-		alignItems: "center",
-		marginBottom: 16,
-	},
 	reviewsHeader: {
 		fontSize: 24,
 		fontWeight: "bold",
-	},
-	addReviewButton: {
-		margin: 0,
+		marginBottom: 16,
 	},
 	yourReview: {
 		fontSize: 16,

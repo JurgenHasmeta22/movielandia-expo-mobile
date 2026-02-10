@@ -1,5 +1,5 @@
 import { ENDPOINTS } from "@/config/api.config";
-import { Movie, Serie, User } from "@/types";
+import { User } from "@/types";
 import { apiClient } from "./client";
 
 export interface UpdateProfileData {
@@ -26,56 +26,30 @@ export const userService = {
 		);
 	},
 
-	getFavorites: async (id: number): Promise<(Movie | Serie)[]> => {
-		return apiClient.get(
-			ENDPOINTS.USERS.GET_FAVORITES.replace(":id", id.toString()),
-		);
-	},
-
-	getWatchlist: async (id: number): Promise<(Movie | Serie)[]> => {
-		return apiClient.get(
-			ENDPOINTS.USERS.GET_WATCHLIST.replace(":id", id.toString()),
-		);
+	getFavorites: async (
+		type: "movies" | "series",
+		page = 1,
+		search = "",
+	): Promise<any> => {
+		return apiClient.get(ENDPOINTS.USERS.GET_FAVORITES, {
+			params: { type, page, search },
+		});
 	},
 
 	addFavorite: async (
-		id: number,
 		itemId: number,
-		type: "movie" | "serie",
+		type: "movies" | "series",
 	): Promise<void> => {
-		return apiClient.post(
-			ENDPOINTS.USERS.ADD_FAVORITE.replace(":id", id.toString()),
-			{ itemId, type },
-		);
+		return apiClient.post(ENDPOINTS.USERS.ADD_FAVORITE, { itemId, type });
 	},
 
-	removeFavorite: async (id: number, itemId: number): Promise<void> => {
-		return apiClient.delete(
-			ENDPOINTS.USERS.REMOVE_FAVORITE.replace(
-				":id",
-				id.toString(),
-			).replace(":itemId", itemId.toString()),
-		);
-	},
-
-	addToWatchlist: async (
-		id: number,
+	removeFavorite: async (
 		itemId: number,
-		type: "movie" | "serie",
+		type: "movies" | "series",
 	): Promise<void> => {
-		return apiClient.post(
-			ENDPOINTS.USERS.ADD_TO_WATCHLIST.replace(":id", id.toString()),
-			{ itemId, type },
-		);
-	},
-
-	removeFromWatchlist: async (id: number, itemId: number): Promise<void> => {
-		return apiClient.delete(
-			ENDPOINTS.USERS.REMOVE_FROM_WATCHLIST.replace(
-				":id",
-				id.toString(),
-			).replace(":itemId", itemId.toString()),
-		);
+		return apiClient.delete(ENDPOINTS.USERS.REMOVE_FAVORITE, {
+			data: { itemId, type },
+		});
 	},
 
 	addReview: async (dto: {
@@ -85,5 +59,29 @@ export const userService = {
 		rating: number;
 	}): Promise<any> => {
 		return apiClient.post(ENDPOINTS.USERS.ADD_REVIEW, dto);
+	},
+
+	updateReview: async (
+		itemId: number,
+		dto: {
+			itemType: "movie" | "serie" | "actor" | "crew";
+			content: string;
+			rating: number;
+		},
+	): Promise<any> => {
+		return apiClient.put(
+			ENDPOINTS.USERS.UPDATE_REVIEW.replace(":itemId", itemId.toString()),
+			dto,
+		);
+	},
+
+	removeReview: async (
+		itemId: number,
+		itemType: "movie" | "serie" | "actor" | "crew",
+	): Promise<void> => {
+		return apiClient.delete(
+			ENDPOINTS.USERS.DELETE_REVIEW.replace(":itemId", itemId.toString()),
+			{ data: { itemType } },
+		);
 	},
 };
