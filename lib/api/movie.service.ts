@@ -1,5 +1,5 @@
 import { ENDPOINTS } from "@/config/api.config";
-import { Movie, PaginatedResponse } from "@/types";
+import { Movie, MovieListResponse, PaginatedResponse } from "@/types";
 import { apiClient } from "./client";
 
 export interface MovieQuery {
@@ -13,7 +13,7 @@ export interface MovieQuery {
 }
 
 export const movieService = {
-	getAll: async (query?: MovieQuery): Promise<PaginatedResponse<Movie>> => {
+	getAll: async (query?: MovieQuery): Promise<MovieListResponse> => {
 		return apiClient.get(ENDPOINTS.MOVIES.GET_ALL, { params: query });
 	},
 

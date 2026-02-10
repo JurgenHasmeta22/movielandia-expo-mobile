@@ -1,11 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
-import { router } from "expo-router";
 import { useState } from "react";
 import { RefreshControl, ScrollView, StyleSheet, View } from "react-native";
-import { Button, Chip } from "react-native-paper";
+import { ActivityIndicator, Button, Chip } from "react-native-paper";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
+import { MediaCard } from "@/components/ui/media-card";
 import { genreService } from "@/lib/api/genre.service";
 import { movieService } from "@/lib/api/movie.service";
 
@@ -17,6 +17,7 @@ export default function MoviesScreen() {
 	const {
 		data: movies,
 		isLoading,
+		isError,
 		refetch,
 	} = useQuery({
 		queryKey: ["movies", page, selectedGenre],
@@ -50,16 +51,18 @@ export default function MoviesScreen() {
 				>
 					All
 				</Chip>
-				{genres?.map((genre) => (
-					<Chip
-						key={genre.id}
-						selected={selectedGenre === genre.id}
-						onPress={() => setSelectedGenre(genre.id)}
-						style={styles.chip}
-					>
-						{genre.name}
-					</Chip>
-				))}
+				{genres &&
+					Array.isArray(genres) &&
+					genres.map((genre) => (
+						<Chip
+							key={genre.id}
+							selected={selectedGenre === genre.id}
+							onPress={() => setSelectedGenre(genre.id)}
+							style={styles.chip}
+						>
+							{genre.name}
+						</Chip>
+					))}
 			</ScrollView>
 
 			<ScrollView
@@ -72,40 +75,59 @@ export default function MoviesScreen() {
 				}
 			>
 				{isLoading ? (
-					<ThemedText>Loading...</ThemedText>
+					<View style={styles.loadingContainer}>
+						<ActivityIndicator size="large" />
+						<ThemedText style={styles.loadingText}>
+							Loading movies...
+						</ThemedText>
+					</View>
+				) : isError ? (
+					<View style={styles.loadingContainer}>
+						<ThemedText style={styles.errorText}>
+							Error loading movies. Pull to refresh.
+						</ThemedText>
+					</View>
+				) : (movies?.movies || []).length === 0 ? (
+					<View style={styles.loadingContainer}>
+						<ThemedText style={styles.emptyText}>
+							No movies found.
+						</ThemedText>
+					</View>
 				) : (
 					<View style={styles.grid}>
-						{movies?.data.map((movie) => (
-							<Button
-								key={movie.id}
-								mode="outlined"
-								onPress={() =>
-									router.push(`/movies/${movie.id}`)
-								}
-								style={styles.gridItem}
-							>
-								{movie.title}
-							</Button>
-						))}
+						{movies?.movies &&
+							Array.isArray(movies.movies) &&
+							movies.movies.map((movie) => (
+								<MediaCard
+									key={movie.id}
+									id={movie.id}
+									title={movie.title}
+									photoSrcProd={movie.photoSrcProd}
+									dateAired={movie.dateAired}
+									ratingImdb={movie.ratingImdb}
+									ratings={movie.ratings}
+									description={movie.description}
+									type="movie"
+									isBookmarked={movie.isBookmarked}
+								/>
+							))}
 					</View>
 				)}
 
-				{movies && movies.meta.totalPages > 1 && (
+				{movies && movies.count > 20 && (
 					<View style={styles.pagination}>
 						<Button
 							mode="contained"
 							onPress={() => setPage(page - 1)}
-							disabled={!movies.meta.hasPreviousPage}
+							disabled={page === 1}
 						>
 							Previous
 						</Button>
-						<ThemedText>
-							Page {page} of {movies.meta.totalPages}
-						</ThemedText>
+						<ThemedText>Page {page}</ThemedText>
 						<Button
 							mode="contained"
 							onPress={() => setPage(page + 1)}
-							disabled={!movies.meta.hasNextPage}
+							disabled={(movies?.movies?.length || 0) < 20}
 						>
 							Next
 						</Button>
@@ -135,9 +157,27 @@ const styles = StyleSheet.create({
 	content: {
 		padding: 16,
 	},
+	loadingContainer: {
+		flex: 1,
+		justifyContent: "center",
+		alignItems: "center",
+		paddingVertical: 40,
+	},
+	loadingText: {
+		marginTop: 12,
+		opacity: 0.7,
+	},
+	errorText: {
+		color: "#f44336",
+		opacity: 0.9,
+	},
+	emptyText: {
+		opacity: 0.7,
+	},
 	grid: {
 		flexDirection: "row",
 		flexWrap: "wrap",
+		justifyContent: "space-between",
 		gap: 8,
 	},
 	gridItem: {

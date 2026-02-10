@@ -1,5 +1,5 @@
 import { ENDPOINTS } from "@/config/api.config";
-import { PaginatedResponse, Season, Serie } from "@/types";
+import { PaginatedResponse, Season, Serie, SerieListResponse } from "@/types";
 import { apiClient } from "./client";
 
 export interface SerieQuery {
@@ -13,7 +13,7 @@ export interface SerieQuery {
 }
 
 export const serieService = {
-	getAll: async (query?: SerieQuery): Promise<PaginatedResponse<Serie>> => {
+	getAll: async (query?: SerieQuery): Promise<SerieListResponse> => {
 		return apiClient.get(ENDPOINTS.SERIES.GET_ALL, { params: query });
 	},
 

@@ -65,7 +65,21 @@ export default function TabLayout() {
 				}}
 			/>
 			<Tabs.Screen
-				name="search"
+				name="people"
+				options={{
+					title: "People",
+					headerTitle: "Actors & Crew",
+					tabBarIcon: ({ color, size }) => (
+						<MaterialCommunityIcons
+							name="account-group"
+							size={size}
+							color={color}
+						/>
+					),
+				}}
+			/>
+			<Tabs.Screen
+				name="explore"
 				options={{
 					title: "Search",
 					headerTitle: "Search",
@@ -76,6 +90,12 @@ export default function TabLayout() {
 							color={color}
 						/>
 					),
+				}}
+			/>
+			<Tabs.Screen
+				name="search"
+				options={{
+					href: null,
 				}}
 			/>
 			<Tabs.Screen

@@ -27,44 +27,45 @@ export interface SignInData {
 	password: string;
 }
 
+export interface MovieRatingInfo {
+	averageRating: number;
+	totalReviews: number;
+}
+
 export interface Movie {
 	id: number;
 	title: string;
-	originalTitle?: string;
-	overview?: string;
-	posterPath?: string;
-	backdropPath?: string;
-	releaseDate?: string;
-	runtime?: number;
-	budget?: number;
-	revenue?: number;
-	popularity?: number;
-	voteAverage?: number;
-	voteCount?: number;
-	adult: boolean;
+	description: string;
+	photoSrc?: string;
+	photoSrcProd?: string;
+	trailerSrc?: string;
+	duration?: number;
+	ratingImdb?: number;
+	dateAired?: string;
+	ratings?: MovieRatingInfo;
 	genres?: Genre[];
-	isFavorite?: boolean;
-	isInWatchlist?: boolean;
+	isBookmarked?: boolean;
+	isReviewed?: boolean;
+}
+
+export interface SerieRatingInfo {
+	averageRating: number;
+	totalReviews: number;
 }
 
 export interface Serie {
 	id: number;
 	title: string;
-	originalTitle?: string;
-	overview?: string;
-	posterPath?: string;
-	backdropPath?: string;
-	firstAirDate?: string;
-	lastAirDate?: string;
-	numberOfSeasons?: number;
-	numberOfEpisodes?: number;
-	status?: string;
-	popularity?: number;
-	voteAverage?: number;
-	voteCount?: number;
+	description: string;
+	photoSrc?: string;
+	photoSrcProd?: string;
+	trailerSrc?: string;
+	dateAired?: string;
+	ratingImdb?: number;
+	ratings?: SerieRatingInfo;
 	genres?: Genre[];
-	isFavorite?: boolean;
-	isInWatchlist?: boolean;
+	isBookmarked?: boolean;
+	isReviewed?: boolean;
 }
 
 export interface Season {
@@ -205,6 +206,26 @@ export interface PaginatedResponse<T> {
 		hasNextPage: boolean;
 		hasPreviousPage: boolean;
 	};
+}
+
+export interface MovieListResponse {
+	count: number;
+	movies: Movie[];
+}
+
+export interface SerieListResponse {
+	count: number;
+	series: Serie[];
+}
+
+export interface ActorListResponse {
+	count: number;
+	actors: Actor[];
+}
+
+export interface CrewListResponse {
+	count: number;
+	crew: Crew[];
 }
 
 export interface ApiError {
