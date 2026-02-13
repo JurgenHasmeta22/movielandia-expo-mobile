@@ -8,7 +8,6 @@ import {
 	View,
 } from "react-native";
 import { ActivityIndicator, Chip } from "react-native-paper";
-
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { MediaCard } from "@/components/ui/media-card";

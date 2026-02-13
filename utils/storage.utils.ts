@@ -9,6 +9,7 @@ export const secureStorage = {
 		if (isWeb) {
 			return await AsyncStorage.getItem(key);
 		}
+		
 		return await SecureStore.getItemAsync(key);
 	},
 

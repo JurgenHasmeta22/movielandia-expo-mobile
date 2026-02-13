@@ -1,7 +1,6 @@
 import { router } from "expo-router";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { Button, Divider } from "react-native-paper";
-
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { Colors } from "@/constants/theme";

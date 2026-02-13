@@ -17,10 +17,14 @@ import { formatDate, formatRuntime } from "@/utils/format.utils";
 
 export default function MovieDetailScreen() {
 	const { id } = useLocalSearchParams<{ id: string }>();
+
 	const colorScheme = useColorScheme();
 	const colors = Colors[colorScheme ?? "light"];
+
 	const queryClient = useQueryClient();
+
 	const user = useAuthStore((state) => state.user);
+
 	const [showReviewDialog, setShowReviewDialog] = useState(false);
 	const [editingReview, setEditingReview] = useState<any>(null);
 	const [snackbarVisible, setSnackbarVisible] = useState(false);
@@ -37,6 +41,7 @@ export default function MovieDetailScreen() {
 			if (!user) {
 				throw new Error("Please sign in to bookmark");
 			}
+
 			if (isBookmarked) {
 				await userService.removeFavorite(Number(id), "movies");
 				return "removed";
@@ -47,10 +52,12 @@ export default function MovieDetailScreen() {
 		},
 		onSuccess: (action) => {
 			queryClient.invalidateQueries({ queryKey: ["movie", id] });
+
 			const message =
 				action === "added"
 					? "Bookmark added successfully"
 					: "Bookmark removed successfully";
+
 			setSnackbarMessage(message);
 			setSnackbarVisible(true);
 		},
@@ -70,23 +77,28 @@ export default function MovieDetailScreen() {
 			if (!user) {
 				throw new Error("Please sign in to write a review");
 			}
+
 			if (editingReview) {
 				await userService.updateReview(Number(id), "movie", {
 					content,
 					rating,
 				});
+
 				return "updated";
 			} else {
 				await userService.addReview(Number(id), "movie", {
 					content,
 					rating,
 				});
+
 				return "added";
 			}
 		},
 		onSuccess: (action) => {
 			queryClient.invalidateQueries({ queryKey: ["movie", id] });
+
 			setEditingReview(null);
+			
 			const message =
 				action === "updated"
 					? "Review updated successfully"

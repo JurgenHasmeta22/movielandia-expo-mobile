@@ -32,6 +32,7 @@ export function ReviewDialog({
 }: ReviewDialogProps) {
 	const colorScheme = useColorScheme();
 	const colors = Colors[colorScheme ?? "light"];
+
 	const [content, setContent] = useState(initialContent);
 	const [rating, setRating] = useState(initialRating);
 	const [isSubmitting, setIsSubmitting] = useState(false);
@@ -47,6 +48,7 @@ export function ReviewDialog({
 		if (!content.trim() || rating < 1 || rating > 10) return;
 
 		setIsSubmitting(true);
+		
 		try {
 			await onSubmit(content, rating);
 			setContent("");

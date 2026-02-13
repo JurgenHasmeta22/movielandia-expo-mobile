@@ -3,7 +3,6 @@ import { Stack, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { Alert, Image, ScrollView, StyleSheet, View } from "react-native";
 import { Chip, Divider, IconButton, Snackbar } from "react-native-paper";
-
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { Review } from "@/components/ui/review";
@@ -16,10 +15,14 @@ import { useAuthStore } from "@/store/auth.store";
 
 export default function CrewDetailScreen() {
 	const { id } = useLocalSearchParams<{ id: string }>();
+
 	const colorScheme = useColorScheme();
 	const colors = Colors[colorScheme ?? "light"];
+
 	const queryClient = useQueryClient();
+
 	const user = useAuthStore((state) => state.user);
+
 	const [showReviewDialog, setShowReviewDialog] = useState(false);
 	const [editingReview, setEditingReview] = useState<any>(null);
 	const [snackbarVisible, setSnackbarVisible] = useState(false);
@@ -36,6 +39,7 @@ export default function CrewDetailScreen() {
 			if (!user) {
 				throw new Error("Please sign in to bookmark");
 			}
+
 			if (isBookmarked) {
 				await userService.removeFavorite(Number(id), "crew");
 				return "removed";
@@ -46,10 +50,12 @@ export default function CrewDetailScreen() {
 		},
 		onSuccess: (action) => {
 			queryClient.invalidateQueries({ queryKey: ["crew", id] });
+
 			const message =
 				action === "added"
 					? "Bookmark added successfully"
 					: "Bookmark removed successfully";
+
 			setSnackbarMessage(message);
 			setSnackbarVisible(true);
 		},
@@ -69,27 +75,33 @@ export default function CrewDetailScreen() {
 			if (!user) {
 				throw new Error("Please sign in to write a review");
 			}
+
 			if (editingReview) {
 				await userService.updateReview(Number(id), "crew", {
 					content,
 					rating,
 				});
+
 				return "updated";
 			} else {
 				await userService.addReview(Number(id), "crew", {
 					content,
 					rating,
 				});
+
 				return "added";
 			}
 		},
 		onSuccess: (action) => {
 			queryClient.invalidateQueries({ queryKey: ["crew", id] });
+
 			setEditingReview(null);
+
 			const message =
 				action === "updated"
 					? "Review updated successfully"
 					: "Review added successfully";
+
 			setSnackbarMessage(message);
 			setSnackbarVisible(true);
 		},
@@ -141,8 +153,10 @@ export default function CrewDetailScreen() {
 				"Sign In Required",
 				"Please sign in to bookmark crew members",
 			);
+
 			return;
 		}
+
 		bookmarkMutation.mutate(!!crew.isBookmarked);
 	};
 
@@ -151,6 +165,7 @@ export default function CrewDetailScreen() {
 			Alert.alert("Sign In Required", "Please sign in to write a review");
 			return;
 		}
+		
 		setEditingReview(null);
 		setShowReviewDialog(true);
 	};
@@ -167,6 +182,7 @@ export default function CrewDetailScreen() {
 
 	const handleDeleteReview = async () => {
 		if (!user) return;
+		
 		Alert.alert(
 			"Delete Review",
 			"Are you sure you want to delete this review?",
@@ -178,9 +194,11 @@ export default function CrewDetailScreen() {
 					onPress: async () => {
 						try {
 							await userService.deleteReview(Number(id), "crew");
+
 							queryClient.invalidateQueries({
 								queryKey: ["crew", id],
 							});
+							
 							setSnackbarMessage("Review deleted");
 							setSnackbarVisible(true);
 						} catch (error: any) {

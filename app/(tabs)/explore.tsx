@@ -3,11 +3,10 @@ import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Keyboard, ScrollView, StyleSheet, View } from "react-native";
 import {
-    ActivityIndicator,
-    Searchbar,
-    SegmentedButtons,
+	ActivityIndicator,
+	Searchbar,
+	SegmentedButtons,
 } from "react-native-paper";
-
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { MediaCard } from "@/components/ui/media-card";

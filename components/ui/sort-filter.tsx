@@ -2,7 +2,6 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import React from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { Chip, IconButton } from "react-native-paper";
-
 import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 

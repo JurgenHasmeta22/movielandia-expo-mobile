@@ -38,6 +38,7 @@ export default function ForgotPasswordScreen() {
 				err instanceof Error
 					? err.message
 					: "Failed to send reset email";
+					
 			setError(errorMessage);
 		} finally {
 			setLoading(false);

@@ -3,7 +3,6 @@ import { router } from "expo-router";
 import { useRef, useState } from "react";
 import { FlatList, StyleSheet, TouchableOpacity, View } from "react-native";
 import { Card, Chip, IconButton, Searchbar } from "react-native-paper";
-
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { Colors } from "@/constants/theme";
