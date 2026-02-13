@@ -1,11 +1,11 @@
-import { router } from "expo-router";
-import { ScrollView, StyleSheet, View } from "react-native";
-import { Button, Divider } from "react-native-paper";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useAuthStore } from "@/store/auth.store";
+import { router } from "expo-router";
+import { ScrollView, StyleSheet, View } from "react-native";
+import { Avatar, Button, Divider } from "react-native-paper";
 
 export default function ProfileScreen() {
 	const user = useAuthStore((state) => state.user);
@@ -21,8 +21,22 @@ export default function ProfileScreen() {
 	return (
 		<ThemedView style={styles.container}>
 			<ScrollView contentContainerStyle={styles.content}>
-				<View style={styles.header}>
-					<ThemedText type="title">My Profile</ThemedText>
+				<View style={styles.avatarSection}>
+					{user?.avatar ? (
+						<Avatar.Image
+							size={100}
+							source={{ uri: user.avatar }}
+						/>
+					) : (
+						<Avatar.Icon
+							size={100}
+							icon="account"
+							style={[
+								styles.avatarPlaceholder,
+								{ backgroundColor: colors.primary },
+							]}
+						/>
+					)}
 				</View>
 
 				{user && (
@@ -100,8 +114,13 @@ const styles = StyleSheet.create({
 	content: {
 		padding: 16,
 	},
-	header: {
+	avatarSection: {
+		alignItems: "center",
 		marginBottom: 24,
+		marginTop: 8,
+	},
+	avatarPlaceholder: {
+		marginBottom: 8,
 	},
 	section: {
 		marginBottom: 24,

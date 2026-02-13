@@ -341,7 +341,7 @@ export default function SeasonDetailScreen() {
 					onDismiss={() => setSnackbarVisible(false)}
 					duration={3000}
 				>
-					{snackbarMessage}
+					<ThemedText>{snackbarMessage}</ThemedText>
 				</Snackbar>
 			</ThemedView>
 		</>

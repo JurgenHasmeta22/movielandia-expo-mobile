@@ -26,6 +26,7 @@ interface MediaCardProps {
 	type: "movie" | "series";
 	isBookmarked?: boolean;
 	onBookmark?: () => void;
+	variant?: "default" | "compact";
 }
 
 export function MediaCard({
@@ -39,6 +40,7 @@ export function MediaCard({
 	type,
 	isBookmarked = false,
 	onBookmark,
+	variant = "default",
 }: MediaCardProps) {
 	const [showOverlay, setShowOverlay] = useState(false);
 	const colorScheme = useColorScheme();
@@ -56,11 +58,20 @@ export function MediaCard({
 		<Pressable
 			onPress={handlePress}
 			onLongPress={() => setShowOverlay(!showOverlay)}
-			style={styles.container}
+			style={[
+				styles.container,
+				variant === "compact" && styles.containerCompact,
+			]}
 		>
 			<Card style={styles.card}>
 				<View style={styles.cardInner}>
-					<View style={styles.imageContainer}>
+					<View
+						style={[
+							styles.imageContainer,
+							variant === "compact" &&
+								styles.imageContainerCompact,
+						]}
+					>
 						<Image
 							source={{
 								uri:
@@ -82,63 +93,11 @@ export function MediaCard({
 							>
 								<View style={styles.overlayContent}>
 									<View style={styles.overlayTop}>
-										<Text
-											variant="bodyMedium"
-											style={styles.overlayTitle}
-											numberOfLines={2}
-										>
-											{title} ({year})
-										</Text>
-
-										<View style={styles.ratings}>
-											{ratingImdb && (
-												<View style={styles.ratingItem}>
-													<MaterialIcons
-														name="movie"
-														size={14}
-														color="#F5C518"
-													/>
-													<Text
-														variant="bodySmall"
-														style={
-															styles.ratingText
-														}
-													>
-														{ratingImdb.toFixed(1)}
-													</Text>
-												</View>
-											)}
-											{averageRating &&
-												averageRating > 0 && (
-													<View
-														style={
-															styles.ratingItem
-														}
-													>
-														<MaterialIcons
-															name="star"
-															size={14}
-															color="#FFD700"
-														/>
-														<Text
-															variant="bodySmall"
-															style={
-																styles.ratingText
-															}
-														>
-															{averageRating.toFixed(
-																1,
-															)}
-														</Text>
-													</View>
-												)}
-										</View>
-
 										{description && (
 											<Text
 												variant="bodySmall"
 												style={styles.description}
-												numberOfLines={3}
+												numberOfLines={5}
 											>
 												{description}
 											</Text>
@@ -179,6 +138,61 @@ export function MediaCard({
 							</View>
 						)}
 					</View>
+
+					<Card.Content style={styles.cardContent}>
+						<Text
+							variant="bodyMedium"
+							style={styles.cardTitle}
+							numberOfLines={2}
+						>
+							{title}
+						</Text>
+						<View style={styles.metaInfo}>
+							{year !== "N/A" && (
+								<Text
+									variant="bodySmall"
+									style={styles.metaText}
+								>
+									{year}
+								</Text>
+							)}
+							{(ratingImdb ||
+								(averageRating && averageRating > 0)) && (
+								<View style={styles.ratingRow}>
+									{ratingImdb && (
+										<>
+											<MaterialIcons
+												name="movie"
+												size={12}
+												color="#F5C518"
+											/>
+											<Text
+												variant="bodySmall"
+												style={styles.ratingValue}
+											>
+												{ratingImdb.toFixed(1)}
+											</Text>
+										</>
+									)}
+									{averageRating && averageRating > 0 && (
+										<>
+											<MaterialIcons
+												name="star"
+												size={12}
+												color="#FFD700"
+											/>
+											<Text
+												variant="bodySmall"
+												style={styles.ratingValue}
+											>
+												{averageRating.toFixed(1)}
+											</Text>
+										</>
+									)}
+								</View>
+							)}
+						</View>
+					</Card.Content>
 				</View>
 			</Card>
 		</Pressable>
@@ -189,6 +203,9 @@ const styles = StyleSheet.create({
 	container: {
 		width: "100%",
 		marginBottom: 12,
+	},
+	containerCompact: {
+		marginBottom: 8,
 	},
 	card: {
 		borderRadius: 12,
@@ -201,11 +218,43 @@ const styles = StyleSheet.create({
 	imageContainer: {
 		position: "relative",
 		width: "100%",
-		height: 260,
+		height: 240,
+	},
+	imageContainerCompact: {
+		height: 160,
 	},
 	image: {
 		width: "100%",
 		height: "100%",
+	},
+	cardContent: {
+		paddingVertical: 12,
+		paddingHorizontal: 8,
+		minHeight: 70,
+	},
+	cardTitle: {
+		fontWeight: "600",
+		marginBottom: 6,
+		lineHeight: 18,
+	},
+	metaInfo: {
+		flexDirection: "row",
+		alignItems: "center",
+		justifyContent: "space-between",
+		gap: 8,
+	},
+	metaText: {
+		opacity: 0.7,
+		fontSize: 12,
+	},
+	ratingRow: {
+		flexDirection: "row",
+		alignItems: "center",
+		gap: 4,
+	},
+	ratingValue: {
+		fontSize: 12,
+		marginRight: 6,
 	},
 	overlay: {
 		position: "absolute",
@@ -249,7 +298,7 @@ const styles = StyleSheet.create({
 	description: {
 		color: "#fff",
 		opacity: 0.9,
-		lineHeight: 16,
+		lineHeight: 18,
 	},
 	overlayBottom: {
 		flexDirection: "row",

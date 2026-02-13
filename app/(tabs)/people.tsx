@@ -210,14 +210,36 @@ export default function PeopleScreen() {
 									>
 										{item.fullname}
 									</ThemedText>
-									{item.debut && (
+									{personType === "crew" &&
+									"role" in item &&
+									item.role ? (
+										<ThemedText
+											style={styles.knownFor}
+											numberOfLines={1}
+										>
+											{String(item.role)}
+										</ThemedText>
+									) : item.debut ? (
 										<ThemedText
 											style={styles.knownFor}
 											numberOfLines={1}
 										>
 											Debut: {item.debut}
 										</ThemedText>
-									)}
+									) : null}
+									{item.ratings &&
+										item.ratings.averageRating > 0 && (
+											<ThemedText
+												style={styles.rating}
+												numberOfLines={1}
+											>
+												⭐{" "}
+												{item.ratings.averageRating.toFixed(
+													1,
+												)}{" "}
+												({item.ratings.totalReviews})
+											</ThemedText>
+										)}
 								</Card.Content>
 							</View>
 						</Card>
@@ -296,6 +318,12 @@ const styles = StyleSheet.create({
 		fontSize: 12,
 		opacity: 0.7,
 		marginTop: 4,
+	},
+	rating: {
+		fontSize: 12,
+		opacity: 0.8,
+		marginTop: 4,
+		color: "#FFD700",
 	},
 	footer: {
 		paddingVertical: 20,

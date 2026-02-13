@@ -1,8 +1,3 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Stack, useLocalSearchParams } from "expo-router";
-import { useState } from "react";
-import { Alert, Image, ScrollView, StyleSheet, View } from "react-native";
-import { Chip, Divider, IconButton, Snackbar } from "react-native-paper";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { Review } from "@/components/ui/review";
@@ -12,6 +7,11 @@ import { useColorScheme } from "@/hooks/use-color-scheme";
 import { actorService } from "@/lib/api/actor.service";
 import { userService } from "@/lib/api/user.service";
 import { useAuthStore } from "@/store/auth.store";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Stack, useLocalSearchParams } from "expo-router";
+import { useState } from "react";
+import { Alert, Image, ScrollView, StyleSheet, View } from "react-native";
+import { Chip, Divider, IconButton, Snackbar } from "react-native-paper";
 
 export default function ActorDetailScreen() {
 	const { id } = useLocalSearchParams<{ id: string }>();
@@ -193,7 +193,7 @@ export default function ActorDetailScreen() {
 					onPress: async () => {
 						try {
 							await userService.deleteReview(Number(id), "actor");
-							
+
 							queryClient.invalidateQueries({
 								queryKey: ["actor", id],
 							});
@@ -345,7 +345,7 @@ export default function ActorDetailScreen() {
 					zIndex: 9999,
 				}}
 			>
-				{snackbarMessage}
+				<ThemedText>{snackbarMessage}</ThemedText>
 			</Snackbar>
 		</ThemedView>
 	);

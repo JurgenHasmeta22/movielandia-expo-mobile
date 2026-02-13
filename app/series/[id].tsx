@@ -2,12 +2,12 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import {
-	Alert,
-	Image,
-	ScrollView,
-	StyleSheet,
-	TouchableOpacity,
-	View,
+    Alert,
+    Image,
+    ScrollView,
+    StyleSheet,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { Chip, Divider, IconButton, Snackbar } from "react-native-paper";
 
@@ -434,7 +434,7 @@ export default function SerieDetailScreen() {
 					zIndex: 9999,
 				}}
 			>
-				{snackbarMessage}
+				<ThemedText>{snackbarMessage}</ThemedText>
 			</Snackbar>
 		</ThemedView>
 	);

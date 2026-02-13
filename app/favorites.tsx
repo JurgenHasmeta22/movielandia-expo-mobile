@@ -1,21 +1,21 @@
-import { useQuery } from "@tanstack/react-query";
-import { router, Stack } from "expo-router";
-import { useState } from "react";
-import {
-    ActivityIndicator,
-    FlatList,
-    Image,
-    Pressable,
-    StyleSheet,
-    View,
-} from "react-native";
-import { Chip, Divider } from "react-native-paper";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { userService } from "@/lib/api/user.service";
 import { FavoriteItem, FavoriteType } from "@/types";
+import { useQuery } from "@tanstack/react-query";
+import { router, Stack } from "expo-router";
+import { useState } from "react";
+import {
+	ActivityIndicator,
+	FlatList,
+	Image,
+	Pressable,
+	StyleSheet,
+	View,
+} from "react-native";
+import { Chip, Divider } from "react-native-paper";
 
 const TABS: { label: string; value: FavoriteType | "all" }[] = [
 	{ label: "All", value: "all" },
@@ -212,7 +212,20 @@ export default function FavoritesScreen() {
 			) : (
 				<FlatList
 					data={data.items}
-					keyExtractor={(item) => `${activeTab}-${item.id}`}
+					keyExtractor={(item) => {
+						const itemType = item.movie
+							? "movies"
+							: item.serie
+								? "series"
+								: item.actor
+									? "actors"
+									: item.crew
+										? "crew"
+										: item.season
+											? "seasons"
+											: "episodes";
+						return `${itemType}-${item.id}`;
+					}}
 					renderItem={renderItem}
 					contentContainerStyle={styles.list}
 					onEndReached={handleLoadMore}

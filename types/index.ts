@@ -141,6 +141,7 @@ export interface Crew {
 	fullname: string;
 	photoSrc?: string;
 	photoSrcProd?: string;
+	role?: string;
 	description?: string;
 	debut?: string;
 	ratings?: CrewRatingInfo;

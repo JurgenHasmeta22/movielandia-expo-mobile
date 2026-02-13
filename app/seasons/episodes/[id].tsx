@@ -282,7 +282,7 @@ export default function EpisodeDetailScreen() {
 					onDismiss={() => setSnackbarVisible(false)}
 					duration={3000}
 				>
-					{snackbarMessage}
+					<ThemedText>{snackbarMessage}</ThemedText>
 				</Snackbar>
 			</ThemedView>
 		</>

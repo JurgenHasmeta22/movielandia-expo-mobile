@@ -98,7 +98,7 @@ export default function MovieDetailScreen() {
 			queryClient.invalidateQueries({ queryKey: ["movie", id] });
 
 			setEditingReview(null);
-			
+
 			const message =
 				action === "updated"
 					? "Review updated successfully"
@@ -366,7 +366,7 @@ export default function MovieDetailScreen() {
 					zIndex: 9999,
 				}}
 			>
-				{snackbarMessage}
+				<ThemedText>{snackbarMessage}</ThemedText>
 			</Snackbar>
 		</ThemedView>
 	);

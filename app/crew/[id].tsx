@@ -1,8 +1,3 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Stack, useLocalSearchParams } from "expo-router";
-import { useState } from "react";
-import { Alert, Image, ScrollView, StyleSheet, View } from "react-native";
-import { Chip, Divider, IconButton, Snackbar } from "react-native-paper";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { Review } from "@/components/ui/review";
@@ -12,6 +7,11 @@ import { useColorScheme } from "@/hooks/use-color-scheme";
 import { crewService } from "@/lib/api/crew.service";
 import { userService } from "@/lib/api/user.service";
 import { useAuthStore } from "@/store/auth.store";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Stack, useLocalSearchParams } from "expo-router";
+import { useState } from "react";
+import { Alert, Image, ScrollView, StyleSheet, View } from "react-native";
+import { Chip, Divider, IconButton, Snackbar } from "react-native-paper";
 
 export default function CrewDetailScreen() {
 	const { id } = useLocalSearchParams<{ id: string }>();
@@ -165,7 +165,7 @@ export default function CrewDetailScreen() {
 			Alert.alert("Sign In Required", "Please sign in to write a review");
 			return;
 		}
-		
+
 		setEditingReview(null);
 		setShowReviewDialog(true);
 	};
@@ -182,7 +182,7 @@ export default function CrewDetailScreen() {
 
 	const handleDeleteReview = async () => {
 		if (!user) return;
-		
+
 		Alert.alert(
 			"Delete Review",
 			"Are you sure you want to delete this review?",
@@ -198,7 +198,7 @@ export default function CrewDetailScreen() {
 							queryClient.invalidateQueries({
 								queryKey: ["crew", id],
 							});
-							
+
 							setSnackbarMessage("Review deleted");
 							setSnackbarVisible(true);
 						} catch (error: any) {
@@ -346,7 +346,7 @@ export default function CrewDetailScreen() {
 					zIndex: 9999,
 				}}
 			>
-				{snackbarMessage}
+				<ThemedText>{snackbarMessage}</ThemedText>
 			</Snackbar>
 		</ThemedView>
 	);

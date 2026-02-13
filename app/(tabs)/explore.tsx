@@ -1,12 +1,3 @@
-import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
-import { Keyboard, ScrollView, StyleSheet, View } from "react-native";
-import {
-	ActivityIndicator,
-	Searchbar,
-	SegmentedButtons,
-} from "react-native-paper";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { MediaCard } from "@/components/ui/media-card";
@@ -18,6 +9,15 @@ import { episodeService } from "@/lib/api/episode.service";
 import { movieService } from "@/lib/api/movie.service";
 import { seasonService } from "@/lib/api/season.service";
 import { serieService } from "@/lib/api/serie.service";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { Keyboard, ScrollView, StyleSheet, View } from "react-native";
+import {
+	ActivityIndicator,
+	Searchbar,
+	SegmentedButtons,
+} from "react-native-paper";
 
 export default function SearchScreen() {
 	const [searchQuery, setSearchQuery] = useState("");
@@ -149,22 +149,31 @@ export default function SearchScreen() {
 								) : (
 									<View style={styles.grid}>
 										{movieResults?.movies?.map((movie) => (
-											<MediaCard
+											<View
 												key={movie.id}
-												id={movie.id}
-												title={movie.title}
-												photoSrcProd={
-													movie.photoSrcProd
-												}
-												dateAired={movie.dateAired}
-												ratingImdb={movie.ratingImdb}
-												ratings={movie.ratings}
-												description={movie.description}
-												type="movie"
-												isBookmarked={
-													movie.isBookmarked
-												}
-											/>
+												style={styles.cardWrapper}
+											>
+												<MediaCard
+													id={movie.id}
+													title={movie.title}
+													photoSrcProd={
+														movie.photoSrcProd
+													}
+													dateAired={movie.dateAired}
+													ratingImdb={
+														movie.ratingImdb
+													}
+													ratings={movie.ratings}
+													description={
+														movie.description
+													}
+													type="movie"
+													isBookmarked={
+														movie.isBookmarked
+													}
+													variant="compact"
+												/>
+											</View>
 										))}
 									</View>
 								)}
@@ -180,22 +189,31 @@ export default function SearchScreen() {
 								) : (
 									<View style={styles.grid}>
 										{serieResults?.series?.map((serie) => (
-											<MediaCard
+											<View
 												key={serie.id}
-												id={serie.id}
-												title={serie.title}
-												photoSrcProd={
-													serie.photoSrcProd
-												}
-												dateAired={serie.dateAired}
-												ratingImdb={serie.ratingImdb}
-												ratings={serie.ratings}
-												description={serie.description}
-												type="series"
-												isBookmarked={
-													serie.isBookmarked
-												}
-											/>
+												style={styles.cardWrapper}
+											>
+												<MediaCard
+													id={serie.id}
+													title={serie.title}
+													photoSrcProd={
+														serie.photoSrcProd
+													}
+													dateAired={serie.dateAired}
+													ratingImdb={
+														serie.ratingImdb
+													}
+													ratings={serie.ratings}
+													description={
+														serie.description
+													}
+													type="series"
+													isBookmarked={
+														serie.isBookmarked
+													}
+													variant="compact"
+												/>
+											</View>
 										))}
 									</View>
 								)}
@@ -212,26 +230,33 @@ export default function SearchScreen() {
 									<View style={styles.grid}>
 										{seasonResults?.seasons?.map(
 											(season) => (
-												<MediaCard
+												<View
 													key={season.id}
-													id={season.id}
-													title={season.title}
-													photoSrcProd={
-														season.photoSrcProd
-													}
-													dateAired={season.dateAired}
-													ratingImdb={
-														season.ratingImdb
-													}
-													ratings={season.ratings}
-													description={
-														season.description
-													}
-													type="series"
-													isBookmarked={
-														season.isBookmarked
-													}
-												/>
+													style={styles.cardWrapper}
+												>
+													<MediaCard
+														id={season.id}
+														title={season.title}
+														photoSrcProd={
+															season.photoSrcProd
+														}
+														dateAired={
+															season.dateAired
+														}
+														ratingImdb={
+															season.ratingImdb
+														}
+														ratings={season.ratings}
+														description={
+															season.description
+														}
+														type="series"
+														isBookmarked={
+															season.isBookmarked
+														}
+														variant="compact"
+													/>
+												</View>
 											),
 										)}
 									</View>
@@ -250,28 +275,35 @@ export default function SearchScreen() {
 									<View style={styles.grid}>
 										{episodeResults?.episodes?.map(
 											(episode) => (
-												<MediaCard
+												<View
 													key={episode.id}
-													id={episode.id}
-													title={episode.title}
-													photoSrcProd={
-														episode.photoSrcProd
-													}
-													dateAired={
-														episode.dateAired
-													}
-													ratingImdb={
-														episode.ratingImdb
-													}
-													ratings={episode.ratings}
-													description={
-														episode.description
-													}
-													type="series"
-													isBookmarked={
-														episode.isBookmarked
-													}
-												/>
+													style={styles.cardWrapper}
+												>
+													<MediaCard
+														id={episode.id}
+														title={episode.title}
+														photoSrcProd={
+															episode.photoSrcProd
+														}
+														dateAired={
+															episode.dateAired
+														}
+														ratingImdb={
+															episode.ratingImdb
+														}
+														ratings={
+															episode.ratings
+														}
+														description={
+															episode.description
+														}
+														type="series"
+														isBookmarked={
+															episode.isBookmarked
+														}
+														variant="compact"
+													/>
+												</View>
 											),
 										)}
 									</View>
@@ -288,21 +320,28 @@ export default function SearchScreen() {
 								) : (
 									<View style={styles.grid}>
 										{actorResults?.actors?.map((actor) => (
-											<MediaCard
+											<View
 												key={actor.id}
-												id={actor.id}
-												title={actor.fullname}
-												photoSrcProd={
-													actor.photoSrcProd
-												}
-												ratingImdb={undefined}
-												ratings={actor.ratings}
-												description={actor.description}
-												type="movie"
-												isBookmarked={
-													actor.isBookmarked
-												}
-											/>
+												style={styles.cardWrapper}
+											>
+												<MediaCard
+													id={actor.id}
+													title={actor.fullname}
+													photoSrcProd={
+														actor.photoSrcProd
+													}
+													ratingImdb={undefined}
+													ratings={actor.ratings}
+													description={
+														actor.description
+													}
+													type="movie"
+													isBookmarked={
+														actor.isBookmarked
+													}
+													variant="compact"
+												/>
+											</View>
 										))}
 									</View>
 								)}
@@ -318,21 +357,28 @@ export default function SearchScreen() {
 								) : (
 									<View style={styles.grid}>
 										{crewResults?.crew?.map((member) => (
-											<MediaCard
+											<View
 												key={member.id}
-												id={member.id}
-												title={member.fullname}
-												photoSrcProd={
-													member.photoSrcProd
-												}
-												ratingImdb={undefined}
-												ratings={member.ratings}
-												description={member.description}
-												type="movie"
-												isBookmarked={
-													member.isBookmarked
-												}
-											/>
+												style={styles.cardWrapper}
+											>
+												<MediaCard
+													id={member.id}
+													title={member.fullname}
+													photoSrcProd={
+														member.photoSrcProd
+													}
+													ratingImdb={undefined}
+													ratings={member.ratings}
+													description={
+														member.description
+													}
+													type="movie"
+													isBookmarked={
+														member.isBookmarked
+													}
+													variant="compact"
+												/>
+											</View>
 										))}
 									</View>
 								)}
@@ -394,6 +440,10 @@ const styles = StyleSheet.create({
 		flexWrap: "wrap",
 		padding: 8,
 		gap: 12,
+		justifyContent: "flex-start",
+	},
+	cardWrapper: {
+		width: 110,
 	},
 	noResults: {
 		textAlign: "center",
